@@ -52,16 +52,17 @@ function GetGP7Robot(self)
         name = ['GP_7_',datestr(now,'yyyymmddTHHMMSSFFF')];
 %     end
     %Populate with GP7 links and DH parameters
+    %Joint limits from motion range using:
+    % https://www.motoman.com/en-us/products/robots/industrial/assembly-handling/gp-series/gp7
     
-    
-    %L1 = Link('d',0.0892,'a',0,'alpha',-pi/2,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
-    %L2 = Link('d',0.1357,'a',0.425,'alpha',-pi,'offset',-pi/2,'qlim',[deg2rad(-90),deg2rad(90)]);
-    %L3 = Link('d',0.1197,'a',0.39243,'alpha',pi,'offset',0,'qlim',[deg2rad(-170),deg2rad(170)]);
-    %L4 = Link('d',0.093,'a',0,'alpha',-pi/2,'offset',-pi/2,'qlim',[deg2rad(-360),deg2rad(360)]);
-    %L5 = Link('d',0.093,'a',0,'alpha',-pi/2,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
-    %L6 = Link('d',0,'a',0,'alpha',0,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
+    L1 = Link('d',0.2,'a',0,'alpha',0,'offset',0,'qlim',[deg2rad(-170),deg2rad(170)]);
+    L2 = Link('d',0,'a',0,'alpha',pi/2,'offset',0,'qlim',[deg2rad(-65),deg2rad(145)]);
+    L3 = Link('d',0,'a',0.475,'alpha',0,'offset',0,'qlim',[deg2rad(-70),deg2rad(190)]);
+    L4 = Link('d',0,'a',0,'alpha',-pi/2,'offset',0,'qlim',[deg2rad(-190),deg2rad(190)]);
+    L5 = Link('d',0.35,'a',0,'alpha',pi/2,'offset',0,'qlim',[deg2rad(-135),deg2rad(135)]);
+    L6 = Link('d',0,'a',0.75,'alpha',0,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
 
-    %self.model = SerialLink([L1 L2 L3 L4 L5 L6],'name',name);
+    self.model = SerialLink([L1 L2 L3 L4 L5 L6],'name',name);
 end
 %% PlotAndColourRobot
 % Given a robot index, add the glyphs (vertices and faces) and
@@ -69,9 +70,9 @@ end
 function PlotAndColourRobot(self)%robot,workspace)
     for linkIndex = 0:self.model.n
         if self.useGripper && linkIndex == self.model.n
-            [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['GP7Link',num2str(linkIndex),'Gripper.ply'],'tri'); %#ok<AGROW>
+            [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['motop',num2str(linkIndex),'Gripper.ply'],'tri'); %#ok<AGROW>
         else
-            [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['GP7Link',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
+            [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['motop',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
         end
         self.model.faces{linkIndex+1} = faceData;
         self.model.points{linkIndex+1} = vertexData;

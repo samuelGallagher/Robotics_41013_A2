@@ -3,7 +3,8 @@
 %% Load the table downloaded from http://tf3dm.com/3d-model/wooden-table-49763.html vertex colours added with Blender
 
 
-[f,v,data] = plyread('motop1.ply','tri');
+
+[f,v,data] = plyread('motop0.ply','tri');
 
 % Scale the colours to be 0-to-1 (they are originally 0-to-255
 vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
@@ -12,7 +13,17 @@ vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
 tableMesh_h = trisurf(f,v(:,1),v(:,2), v(:,3) ...
     ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
 hold on
-[f,v,data] = plyread('motop2.ply','tri');
+[f,v,data] = plyread('motop1.ply','tri');
+
+% Scale the colours to be 0-to-1 (they are originally 0-to-255
+vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
+
+% Then plot the trisurf
+tableMesh_h = trisurf(f,v(:,1),v(:,2), v(:,3) ...
+    ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
+
+hold on
+[f,v,data] = plyread('motop3.ply','tri');
 
 % Scale the colours to be 0-to-1 (they are originally 0-to-255
 vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
@@ -30,7 +41,7 @@ vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
 % Then plot the trisurf
 tableMesh_h = trisurf(f,v(:,1),v(:,2), v(:,3) ...
     ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
-
+axis([-2,2,-2,2,-2,2]);
 hold on
 [f,v,data] = plyread('motop5.ply','tri');
 
@@ -40,7 +51,8 @@ vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
 % Then plot the trisurf
 tableMesh_h = trisurf(f,v(:,1),v(:,2), v(:,3) ...
     ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
-axis([-2,2,-2,2,-2,2]);
+
+
 hold on
 [f,v,data] = plyread('motop6.ply','tri');
 
@@ -50,6 +62,7 @@ vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
 % Then plot the trisurf
 tableMesh_h = trisurf(f,v(:,1),v(:,2), v(:,3) ...
     ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
+
 
 
 hold on
@@ -63,20 +76,8 @@ tableMesh_h = trisurf(f,v(:,1),v(:,2), v(:,3) ...
     ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
 
 
-
 hold on
-[f,v,data] = plyread('motop8.ply','tri');
-
-% Scale the colours to be 0-to-1 (they are originally 0-to-255
-vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
-
-% Then plot the trisurf
-tableMesh_h = trisurf(f,v(:,1),v(:,2), v(:,3) ...
-    ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
-
-
-hold on
-[f,v,data] = plyread('motop3.ply','tri');
+[f,v,data] = plyread('motop2.ply','tri');
 % Scale the colours to be 0-to-1 (they are originally 0-to-255
 vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
 
