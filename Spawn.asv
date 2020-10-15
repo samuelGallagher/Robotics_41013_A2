@@ -93,20 +93,20 @@ classdef Spawn < handle
 
             self.Cake_Locations= [
                 %Middle Row
-                ;self.tray_x,     self.tray_y,    self.tray_z...            %11   Really 1
-                ;self.tray_x,     self.tray_y+0.14,    self.tray_z...       %8    Really 2
-                ;self.tray_x,     self.tray_y-0.05,    self.tray_z...       %5   Really 3
-                ;self.tray_x,     self.tray_y-0.14,    self.tray_z...       %2   Really 4
+                ;self.tray_x,     self.tray_y,    self.tray_z...            %11
+                ;self.tray_x,     self.tray_y+0.14,    self.tray_z...       %8
+                ;self.tray_x,     self.tray_y-0.05,    self.tray_z...       %5
+                ;self.tray_x,     self.tray_y-0.14,    self.tray_z...       %2
                 %Left Row
-                ;self.tray_x-0.09,     self.tray_y+0.05,    self.tray_z...  %12   Really5
-                ;self.tray_x-0.09,     self.tray_y+0.14,    self.tray_z...  %9   Really6
-                ;self.tray_x-0.09,     self.tray_y-0.05,    self.tray_z...  %6   Really7
-                ;self.tray_x-0.09,     self.tray_y-0.14,    self.tray_z...  %3   Really8
+                ;self.tray_x-0.09,     self.tray_y+0.05,    self.tray_z...  %12
+                ;self.tray_x-0.09,     self.tray_y+0.14,    self.tray_z...  %9
+                ;self.tray_x-0.09,     self.tray_y-0.05,    self.tray_z...  %6
+                ;self.tray_x-0.09,     self.tray_y-0.14,    self.tray_z...  %3
                 %Right Row
-                ;self.tray_x+0.09,     self.tray_y+0.05,    self.tray_z...  %7   Really9
-                ;self.tray_x+0.09,     self.tray_y+0.14,    self.tray_z...  %10   Really10
-                ;self.tray_x+0.09,     self.tray_y-0.05,    self.tray_z...  %4   Really11
-                ;self.tray_x+0.09,     self.tray_y-0.14,    self.tray_z];   %1   Really12
+                ;self.tray_x+0.09,     self.tray_y+0.05,    self.tray_z...  %7
+                ;self.tray_x+0.09,     self.tray_y+0.14,    self.tray_z...  %10
+                ;self.tray_x+0.09,     self.tray_y-0.05,    self.tray_z...  %4
+                ;self.tray_x+0.09,     self.tray_y-0.14,    self.tray_z];   %1
                         
             for i = 1:12
                 if 1==self.cakeArray(1,i)
