@@ -28,10 +28,11 @@ gp7_.model.base = transl(-0.25,0.15,0.84);
 hold on
 %Plot as per UR5 function
 gp7_.PlotAndColourRobot();
-
+%gp7_.model.base.getpos()
 
 workspace = [-3 3 -2 2 0 2] %Fit around the space of the lab set
 
+q_current = gp7_.returnRobotJoints()
 %% Cake Locations
 
 workspace = [-1 1 -1 1 0 1]; %Fit around the space of the lab set
@@ -83,6 +84,9 @@ for j = 1:3
 cake_placement = transl(cakePlace(1,4,j),cakePlace(2,4,j),cakePlace(3,4,j))
 
     
+num2str(j)
+cake_placement
+workspace
 Cake(num2str(j),cake_placement,workspace);
         
         
@@ -160,3 +164,15 @@ for i=1:steps
     drawnow();
 
 end
+
+q_current = gp7_.returnRobotJoints();
+
+%gp7_.RMRC(0.3, 0.8, 0.85);
+
+
+
+            %CakeSlotChoice(5);
+             %           CakeSlotChoice(9);
+            %CakeSlotChoice(7);
+            %pause(3);
+            %CakeLocationSpawn()
