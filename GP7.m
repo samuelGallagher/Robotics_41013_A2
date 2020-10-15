@@ -58,15 +58,16 @@ classdef GP7 < handle
             %Populate with GP7 links and DH parameters
             %Joint limits from motion range using:
             % https://www.motoman.com/en-us/products/robots/industrial/assembly-handling/gp-series/gp7
-            toggle = 0;
+            toggle = 1;
             
             if toggle == 1
-                L1 = Link('d',0.2,'a',0,'alpha',0,'offset',0,'qlim',[deg2rad(-170),deg2rad(170)]);
-                L2 = Link('d',0,'a',0,'alpha',pi/2,'offset',0,'qlim',[deg2rad(-65),deg2rad(145)]);
                 L3 = Link('d',0,'a',0.475,'alpha',0,'offset',0,'qlim',[deg2rad(-70),deg2rad(190)]);
-                L4 = Link('d',0,'a',0,'alpha',-pi/2,'offset',0,'qlim',[deg2rad(-190),deg2rad(190)]);
-                L5 = Link('d',0.35,'a',0,'alpha',pi/2,'offset',0,'qlim',[deg2rad(-135),deg2rad(135)]);
-                L6 = Link('d',0,'a',0.75,'alpha',0,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
+                L1 = Link('d',0.33,'a',0.04,'alpha',pi/2,'qlim',[deg2rad(-170),deg2rad(170)], 'offset',0);
+                L2 = Link('d',0,'a',0.45,'alpha',0,'qlim', [deg2rad(-65),deg2rad(145)], 'offset',pi/2);
+                L3 = Link('d',0,'a',0,'alpha',pi/2,'qlim',[deg2rad(-70),deg2rad(190)],'offset',0);
+                L4 = Link('d',-0.4,'a',0,'alpha',pi/2,'qlim',[deg2rad(-190),deg2rad(190)], 'offset',0);
+                L5 = Link('d',0,'a',0,'alpha',pi/2,'qlim',[deg2rad(-135),deg2rad(135)], 'offset',pi/2);
+                L6 = Link('d',-0.09,'a',-0.013,'alpha',0,'qlim',[deg2rad(-360),deg2rad(360)], 'offset', 0);
             else
                 L1 = Link('d',0.0892,'a',0,'alpha',-pi/2,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
                 L2 = Link('d',0.1357,'a',0.425,'alpha',-pi,'offset',-pi/2,'qlim',[deg2rad(-90),deg2rad(90)]);
@@ -84,9 +85,9 @@ classdef GP7 < handle
         function PlotAndColourRobot(self)%robot,workspace)
             for linkIndex = 0:self.model.n
                 if self.useGripper && linkIndex == self.model.n
-                    [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['UR5Link',num2str(linkIndex),'Gripper.ply'],'tri'); %#ok<AGROW>
+                    [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['motop',num2str(linkIndex),'Gripper.ply'],'tri'); %#ok<AGROW>
                 else % Should use motop instead
-                    [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['UR5Link',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
+                    [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['motop',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
                 end
                 self.model.faces{linkIndex+1} = faceData;
                 self.model.points{linkIndex+1} = vertexData;
@@ -255,17 +256,17 @@ classdef GP7 < handle
         end
         function FreeMovement(self)
             % Lab 11 - Question 2 skeleton code
-
+            
             id = 1; % Note: may need to be changed if multiple joysticks present
             pendant = VirtualTeachPendant;
             joy = vrjoystick(id);
             axes = pendant.read;
             %joy = vrjoystick(id);
             caps(joy) % display joystick information
-                       
+            
             % Start "real-time" simulation
             q = self.returnRobotJoints();% Set initial robot configuration 'q'
-                        
+            
             
             HF = figure(1);         % Initialise figure to display robot
             %robot.PlotAndColourRobot();
