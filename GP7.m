@@ -61,7 +61,6 @@ classdef GP7 < handle
             toggle = 1;
             
             if toggle == 1
-                L3 = Link('d',0,'a',0.475,'alpha',0,'offset',0,'qlim',[deg2rad(-70),deg2rad(190)]);
                 L1 = Link('d',0.33,'a',0.04,'alpha',pi/2,'qlim',[deg2rad(-170),deg2rad(170)], 'offset',0);
                 L2 = Link('d',0,'a',0.45,'alpha',0,'qlim', [deg2rad(-65),deg2rad(145)], 'offset',pi/2);
                 L3 = Link('d',0,'a',0,'alpha',pi/2,'qlim',[deg2rad(-70),deg2rad(190)],'offset',0);
