@@ -326,8 +326,9 @@ classdef GP7 < handle
                     tray_y = A(2,4);
                     tray_z = A(3,4);
                     tray_location = transl(tray_x, tray_y, tray_z);
-                    
-                    Tray(num2Str(1),tray_location, workspace);
+                    %Insert tray movement. Might need to be implemented in
+                    %Spawn instead
+                    %Tray(num2Str(1),tray_location, workspace);
                 end
                 drawnow()
             end
