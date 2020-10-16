@@ -10,7 +10,7 @@ classdef GP7 < handle
         stop_status;
         
         %>
-        workspace = [-3 2 -2 2 0 2];
+        workspace = [-3 2 -2 2 -0.3 2];
         
         %> Flag to indicate if gripper is used
         useGripper = false;
@@ -61,7 +61,7 @@ classdef GP7 < handle
             %Populate with GP7 links and DH parameters
             %Joint limits from motion range using:
             % https://www.motoman.com/en-us/products/robots/industrial/assembly-handling/gp-series/gp7
-            toggle = 1;
+            toggle = 0;
             
             if toggle == 0
            L1 = Link('d',0.33,'a',0.04,'alpha',pi/2,'qlim',[deg2rad(-170),deg2rad(170)], 'offset',0); 
@@ -87,9 +87,9 @@ classdef GP7 < handle
         function PlotAndColourRobot(self)%robot,workspace)
             for linkIndex = 0:self.model.n
                 if self.useGripper && linkIndex == self.model.n
-                    [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['UR5Link',num2str(linkIndex),'Gripper.ply'],'tri'); %#ok<AGROW>
+                    [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['GP7Link',num2str(linkIndex),'Gripper.ply'],'tri'); %#ok<AGROW>
                 else % Should use motop instead
-                    [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['UR5Link',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
+                    [ faceData, vertexData, plyData{linkIndex+1} ] = plyread(['GP7Link',num2str(linkIndex),'.ply'],'tri'); %#ok<AGROW>
                 end
                 self.model.faces{linkIndex+1} = faceData;
                 self.model.points{linkIndex+1} = vertexData;
@@ -386,11 +386,11 @@ classdef GP7 < handle
             q = self.returnRobotJoints();% Set initial robot configuration 'q'
             
             
-            HF = figure(1);         % Initialise figure to display robot
+            %HF = figure(1);         % Initialise figure to display robot
             %robot.PlotAndColourRobot();
             %robot.plot(q);          % Plot robot in initial configuration
             %robot.delay = 0.001;    % Set smaller delay when animating
-            set(HF,'Position',[0.1 0.1 0.8 0.8]);
+            %set(HF,'Position',[0.1 0.1 0.8 0.8]);
             
             duration = 45;  % Set duration of the simulation (seconds)
             dt = 0.15;      % Set time step for simulation (seconds)

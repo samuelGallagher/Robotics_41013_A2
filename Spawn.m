@@ -27,11 +27,11 @@ classdef Spawn < handle
             self.robot = GP7(false);
             self.robot.model.base = transl(-0.25, 0.15, self.tableZ);
             self.CurrentQValues = zeros(1,6);
-            self.workspace = [-1 1 -1 1 0 1];
+            self.workspace = [-1 1 -1 1 -0.3 1];
             %Tray location, decided previously
             self.tray_x = -0.8;
             self.tray_y = 0.14;
-            self.tray_z = self.tableZ+0.03;
+            self.tray_z = self.tableZ+0.04;
             tray_location = transl(self.tray_x, self.tray_y, self.tray_z);
             
             self.robot.PlotAndColourRobot();%robot,workspace);
@@ -68,7 +68,7 @@ classdef Spawn < handle
                 ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
             hold on
             
-            
+            set(gca, 'CameraPosition', [-700 3000 1000]);
             
         end
         
@@ -92,21 +92,21 @@ classdef Spawn < handle
             %self.Cake_Locations(1,:) = self.tray_x, self.tray_y, self.tray_z
 
             self.Cake_Locations= [
-                %Middle Row
-                ;self.tray_x,     self.tray_y,    self.tray_z...            %11   Really 1
-                ;self.tray_x,     self.tray_y+0.14,    self.tray_z...       %8    Really 2
-                ;self.tray_x,     self.tray_y-0.05,    self.tray_z...       %5   Really 3
-                ;self.tray_x,     self.tray_y-0.14,    self.tray_z...       %2   Really 4
+                %Middle Row 
+                ;self.tray_x,     self.tray_y,    self.tray_z-0.04...            %11   Really 1
+                ;self.tray_x,     self.tray_y+0.13,    self.tray_z-0.04...       %8    Really 2
+                ;self.tray_x,     self.tray_y-0.04,    self.tray_z-0.04...       %5   Really 3
+                ;self.tray_x,     self.tray_y-0.13,    self.tray_z-0.04...       %2   Really 4
                 %Left Row
-                ;self.tray_x-0.09,     self.tray_y+0.05,    self.tray_z...  %12   Really5
-                ;self.tray_x-0.09,     self.tray_y+0.14,    self.tray_z...  %9   Really6
-                ;self.tray_x-0.09,     self.tray_y-0.05,    self.tray_z...  %6   Really7
-                ;self.tray_x-0.09,     self.tray_y-0.14,    self.tray_z...  %3   Really8
+                ;self.tray_x-0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %12   Really5
+                ;self.tray_x-0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %9   Really6
+                ;self.tray_x-0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %6   Really7
+                ;self.tray_x-0.085,     self.tray_y-0.13,    self.tray_z-0.04...  %3   Really8
                 %Right Row
-                ;self.tray_x+0.09,     self.tray_y+0.05,    self.tray_z...  %7   Really9
-                ;self.tray_x+0.09,     self.tray_y+0.14,    self.tray_z...  %10   Really10
-                ;self.tray_x+0.09,     self.tray_y-0.05,    self.tray_z...  %4   Really11
-                ;self.tray_x+0.09,     self.tray_y-0.14,    self.tray_z];   %1   Really12
+                ;self.tray_x+0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %7   Really9
+                ;self.tray_x+0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %10   Really10
+                ;self.tray_x+0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %4   Really11
+                ;self.tray_x+0.085,     self.tray_y-0.13,    self.tray_z-0.04];   %1   Really12
                         
             for i = 1:12
                 if 1==self.cakeArray(1,i)
@@ -115,6 +115,8 @@ classdef Spawn < handle
                     
                     Cake(num2str(i),cake_placement,self.workspace);
                 end
+                set(gca, 'CameraPosition', [-700 3000 1000]);
+
             end
             
             

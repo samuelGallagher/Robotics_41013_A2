@@ -18,14 +18,9 @@ classdef Cake < handle
             end
             
             %if name == 1
-                [faceData,vertexData] = plyread('Box_1.ply','tri');
+                [faceData,vertexData] = plyread('Cake_Full.ply','tri');
             %end
-            if name == 2
-                [faceData,vertexData] = plyread('Box_2.ply','tri');
-            end
-            if name == 3
-                [faceData,vertexData] = plyread('Box_3.ply','tri');
-            end
+            
             L1 = Link('alpha',0,'a',0,'d',0,'offset',0);
             model = SerialLink(L1,'name',name);
             model.faces = {faceData,[]};
