@@ -12,7 +12,7 @@ classdef Tray < handle
         id
         tray
         workspaceDimensions
-        cakeLocations
+     
     end
     
     methods(Static)
@@ -37,4 +37,3 @@ classdef Tray < handle
         end
     end
 end
-        

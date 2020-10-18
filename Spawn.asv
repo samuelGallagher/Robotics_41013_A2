@@ -10,11 +10,15 @@ classdef Spawn < handle
         cakeArray=zeros(1,12);
         CurrentQValues;
         stop_status=0;
+        tray;
+        door;
+        bottle;
         tray_x;
         tray_y;
         tray_z;
         Cake_Locations;
         workspace;
+        cake_cache;
         
     end
     
@@ -30,15 +34,19 @@ classdef Spawn < handle
             self.workspace = [-1 1 -1 1 -0.3 1];
             %Tray location, decided previously
             self.tray_x = -0.8;
-            self.tray_y = 0.14;
+            self.tray_y = 0.35;
             self.tray_z = self.tableZ+0.04;
             tray_location = transl(self.tray_x, self.tray_y, self.tray_z);
-            door_location = transl(0.4,0.7,0)
+            door_location = transl(0.41,0.635,0.17)* trotx(-pi/4);
+            bottle_location = transl(-1.2,0.45,self.tableZ+.14);
             self.robot.PlotAndColourRobot();%robot,workspace);
             
-            Tray(num2str(13), tray_location, self.workspace);
-            Door(num2str(14),door_location,self.workspace);
-            
+            self.tray = Tray(num2str(13), tray_location, self.workspace);
+            self.door = Door(num2str(14),door_location,self.workspace);
+            self.bottle = Bottle(num2str(15),bottle_location,self.workspace);
+            %self.tray.tray.base = transl(0-1,1,0.5);
+            %animate(self.tray.tray,0);
+            %plot3d(self.tray.tray,0,'workspace',self.workspace,'view',[-30,30],'delay',0);
             
             % Insert Simulated Environment
             % *****Replace this section with a class function, with choice of simple or
@@ -61,8 +69,12 @@ classdef Spawn < handle
                 ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
             hold on
             
-
-            
+            %for i = 1:12
+            %    cake_cache(i) = Cake(num2str(i),transl(0,0,0), self.workspace);
+            %end
+            for i = 1:9
+                self.cake_cache.i = Cake(num2str(i), transl(0,0,0), self.workspace)
+            end
             
             set(gca, 'CameraPosition', [-700 3000 1000]);
             
@@ -82,13 +94,13 @@ classdef Spawn < handle
             
         end
         function CakeLocationSpawn(self)
-
+            
             %Defining the location for cupcakes
             self.Cake_Locations = zeros(12,3);
             %self.Cake_Locations(1,:) = self.tray_x, self.tray_y, self.tray_z
-
+            
             self.Cake_Locations= [
-                %Middle Row 
+                %Middle Row
                 ;self.tray_x,     self.tray_y+0.04,    self.tray_z-0.04...            %11   Really 1
                 ;self.tray_x,     self.tray_y+0.13,    self.tray_z-0.04...       %8    Really 2
                 ;self.tray_x,     self.tray_y-0.04,    self.tray_z-0.04...       %5   Really 3
@@ -103,27 +115,28 @@ classdef Spawn < handle
                 ;self.tray_x+0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %10   Really10
                 ;self.tray_x+0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %4   Really11
                 ;self.tray_x+0.085,     self.tray_y-0.13,    self.tray_z-0.04];   %1   Really12
-                        
+            
             for i = 1:12
                 if 1==self.cakeArray(1,i)
                     cakePlace(:,:,i) = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
                     cake_placement = transl(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i));
                     
-                    Cake(num2str(i),cake_placement,self.workspace);
+                    
+                    self.cake_cache.i.cake.base = transl(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i))
+                    %self.cake_cache(i) = Cake(num2str(i),cake_placement,self.workspace);
+                    
+                    animate(self.cake_cache.i.cake,0);
+                                        Cake(num2str(i),cake_placement,self.workspace);
+
                 end
                 set(gca, 'CameraPosition', [-700 3000 1000]);
-
+                
             end
             
             
             
         end
-        function CakeUpdate(self)
-            %Take info updates and place all cake paper in required
-            %locations. Use to update position/translation
-            
-            
-        end
+
         
         %Nathan Help
         function RobotPoseAnimate(self,q)
@@ -183,7 +196,7 @@ classdef Spawn < handle
             % 1.1) Set parameters for the simulation
             %mdl_puma560;        % Load robot model
             %robotman = GP7;
-            t = 5;             % Total time (s)
+            t = 3;             % Total time (s)
             deltaT = 0.05;      % Control frequency
             steps = t/deltaT;   % No. of steps for simulation
             delta = 2*pi/steps; % Small angle change
@@ -262,13 +275,19 @@ classdef Spawn < handle
                     tray_y = A(2,4);
                     tray_z = A(3,4);
                     tray_location = transl(tray_x, tray_y, tray_z);
+                    self.tray.tray.base = transl(tray_x, tray_y, tray_z);
+                    animate(self.tray.tray,0);
+                    
                     %Insert tray movement. Might need to be implemented in
                     %Spawn instead
-                    Tray(num2str(0),tray_location, self.workspace);                set(gca, 'CameraPosition', [-700 3000 1000]);
-                    set(gca, 'CameraPosition', [-700 3000 1000]);
+                    %plot3d(self.tray.tray,0,'workspace',self.workspace,'view',[-30,30],'delay',0);
+                    
+                    
+                    %Tray(num2str(0),tray_location, self.workspace);
                     self.CakeLocationSpawn();
-
-
+                    set(gca, 'CameraPosition', [-700 3000 1000]);
+                    
+                    
                 end
                 drawnow()
             end
