@@ -33,7 +33,7 @@ classdef Spawn < handle
             self.tray_y = 0.14;
             self.tray_z = self.tableZ+0.04;
             tray_location = transl(self.tray_x, self.tray_y, self.tray_z);
-            door_location = transl(0.41,0.635,0.17)* trotx(-pi/4);
+            door_location = transl(0.4,0.7,0)
             self.robot.PlotAndColourRobot();%robot,workspace);
             
             Tray(num2str(13), tray_location, self.workspace);
