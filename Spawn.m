@@ -16,6 +16,9 @@ classdef Spawn < handle
         tray_x;
         tray_y;
         tray_z;
+        bottle_x;
+        bottle_y;
+        bottle_z;
         Cake_Locations;
         workspace;
         cake_cache;
@@ -37,7 +40,10 @@ classdef Spawn < handle
             self.tray_z = self.tableZ+0.04;
             tray_location = transl(self.tray_x, self.tray_y, self.tray_z);
             door_location = transl(0.41,0.635,0.17)* trotx(-pi/4);
-            bottle_location = transl(-0.7,0,self.tableZ+.14);
+            self.bottle_x = -0.7;
+            self.bottle_y = 0;
+            self.bottle_z = self.tableZ+0.14;
+            bottle_location = transl(self.bottle_x,self.bottle_y,self.bottle_z);
             self.robot.PlotAndColourRobot();%robot,workspace);
             
             self.tray = Tray(num2str(13), tray_location, self.workspace);
@@ -192,25 +198,18 @@ classdef Spawn < handle
         
         function SpawnRMRCPoint(self, xend, yend, zend)
             %function Lab9Solution_Question1(self, xstart, ystart, zstart, xend, yend, zend)
-            q_current = self.robot.returnRobotJoints();
-            T = self.robot.model.fkine(q_current);
-            xstart = T(1,4);
-            ystart = T(2,4);
+            q_current = self.robot.returnRobotJoints()
+            T = self.robot.model.fkine(q_current)
+            xstart = T(1,4)
+            ystart = T(2,4)
             zstart = T(3,4);
-            
-            %xstart = -0.8;
-            %ystart = 0.3;
-            %zstart = 0.85
-            %xend = 0.3;
-            %yend = 0.8;
-            %zend = 0.85;
+            % http://planning.cs.uiuc.edu/node103.html
+
             %T_goal = self.model.fkine(q_goal);
             %xend = T_goal(1,4);
             %yend = T_goal(2,4);
             %zend = T_goal(3,4);
             % 1.1) Set parameters for the simulation
-            %mdl_puma560;        % Load robot model
-            %robotman = GP7;
             t = 5;             % Total time (s)
             deltaT = 0.025;      % Control frequency
             steps = t/deltaT;   % No. of steps for simulation
@@ -235,7 +234,7 @@ classdef Spawn < handle
                 if self.robot.mode ==4
                     x(2,i) = ystart - 0.3*cos(i*delta);
                 else
-                    x(2,i) = (1-s(i))*ystart + s(i)*yend; % Points in y
+                x(2,i) = (1-s(i))*ystart + s(i)*yend; % Points in y
                 end
                 x(3,i) = (1-s(i))*zstart + s(i)*zend; % Points in z
                 %Use theta(1,i)=(1-s(i)*roll_start+s(i)*roll_end for gradual movements;
@@ -261,80 +260,83 @@ classdef Spawn < handle
                     theta(3,i) = 0;                  % Yaw angle
                     
                 end
-                T = [rpy2r(theta(1,1),theta(2,1),theta(3,1)) x(:,1);zeros(1,3) 1];          % Create transformation of first point and angle
-                q0 = zeros(1,7);                                                            % Initial guess for joint angles
-                qMatrix(1,:) = self.robot.model.ikcon(T,q0);                                            % Solve joint angles to achieve first waypoint
-                
-                % 1.4) Track the trajectory with RMRC
-                for i = 1:steps-1
-                    T = self.robot.model.fkine(qMatrix(i,:));                                           % Get forward transformation at current joint state
-                    deltaX = x(:,i+1) - T(1:3,4);                                         	% Get position error from next waypoint
-                    Rd = rpy2r(theta(1,i+1),theta(2,i+1),theta(3,i+1));                     % Get next RPY angles, convert to rotation matrix
-                    Ra = T(1:3,1:3);                                                        % Current end-effector rotation matrix
-                    Rdot = (1/deltaT)*(Rd - Ra);                                                % Calculate rotation matrix error
-                    S = Rdot*Ra';                                                           % Skew symmetric!
-                    linear_velocity = (1/deltaT)*deltaX;
-                    angular_velocity = [S(3,2);S(1,3);S(2,1)];                              % Check the structure of Skew Symmetric matrix!!
-                    %deltaTheta = tr2rpy(Rd*Ra');                                            % Convert rotation matrix to RPY angles
-                    xdot = W*[linear_velocity;angular_velocity];                          	% Calculate end-effector velocity to reach next waypoint.
-                    J = self.robot.model.jacob0(qMatrix(i,:));                 % Get Jacobian at current joint state as respect to the base
-                    m(i) = sqrt(det(J*J'));
-                    if m(i) < epsilon  % If manipulability is less than given threshold
-                        lambda = (1 - m(i)/epsilon)*5E-2;
-                    else
-                        lambda = 0;
-                    end
-                    invJ = inv(J'*J + lambda *eye(7))*J';                                   % DLS Inverse
-                    qdot(i,:) = (invJ*xdot)';                                                % Solve the RMRC equation (you may need to transpose the         vector)
-                    for j = 1:7                                                             % Loop through joints 1 to 6
-                        if qMatrix(i,j) + deltaT*qdot(i,j) < self.robot.model.qlim(j,1)                     % If next joint angle is lower than joint limit...
-                            qdot(i,j) = 0; % Stop the motor
-                        elseif qMatrix(i,j) + deltaT*qdot(i,j) > self.robot.model.qlim(j,2)                 % If next joint angle is greater than joint limit ...
-                            qdot(i,j) = 0; % Stop the motor
-                        end
-                    end
-                    qMatrix(i+1,:) = qMatrix(i,:) + deltaT*qdot(i,:);                         	% Update next joint state based on joint velocities
-                    positionError(:,i) = x(:,i+1) - T(1:3,4);                               % For plotting
+            end
+            T = [rpy2r(theta(1,1),theta(2,1),theta(3,1)) x(:,1);zeros(1,3) 1];          % Create transformation of first point and angle
+            %q0 = zeros(1,7);                                                            % Initial guess for joint angles
+            q0 = q_current;
+            qMatrix(1,:) = self.robot.model.ikcon(T,q0);                                            % Solve joint angles to achieve first waypoint
+            
+            % 1.4) Track the trajectory with RMRC
+            for i = 1:steps-1
+                T = self.robot.model.fkine(qMatrix(i,:));                                           % Get forward transformation at current joint state
+                deltaX = x(:,i+1) - T(1:3,4);                                         	% Get position error from next waypoint
+                Rd = rpy2r(theta(1,i+1),theta(2,i+1),theta(3,i+1));                     % Get next RPY angles, convert to rotation matrix
+                Ra = T(1:3,1:3);                                                        % Current end-effector rotation matrix
+                Rdot = (1/deltaT)*(Rd - Ra);                                                % Calculate rotation matrix error
+                S = Rdot*Ra';                                                           % Skew symmetric!
+                linear_velocity = (1/deltaT)*deltaX;
+                angular_velocity = [S(3,2);S(1,3);S(2,1)];                              % Check the structure of Skew Symmetric matrix!!
+                %deltaTheta = tr2rpy(Rd*Ra');                                            % Convert rotation matrix to RPY angles
+                xdot = W*[linear_velocity;angular_velocity];                          	% Calculate end-effector velocity to reach next waypoint.
+                J = self.robot.model.jacob0(qMatrix(i,:));                 % Get Jacobian at current joint state as respect to the base
+                m(i) = sqrt(det(J*J'));
+                if m(i) < epsilon  % If manipulability is less than given threshold
+                    lambda = (1 - m(i)/epsilon)*5E-2;
+                else
+                    lambda = 0;
                 end
-                
-                
-                for i=1:steps
-                    while self.robot.stop_status ==1
-                        %Do nothing
-                        %Problem where it cannot break from loop properly.
-                        %Investigate further
-                        self.robot.stop_status
+                invJ = inv(J'*J + lambda *eye(7))*J';                                   % DLS Inverse
+                qdot(i,:) = (invJ*xdot)';                                                % Solve the RMRC equation (you may need to transpose the         vector)
+                for j = 1:7                                                             % Loop through joints 1 to 6
+                    if qMatrix(i,j) + deltaT*qdot(i,j) < self.robot.model.qlim(j,1)                     % If next joint angle is lower than joint limit...
+                        qdot(i,j) = 0; % Stop the motor
+                    elseif qMatrix(i,j) + deltaT*qdot(i,j) > self.robot.model.qlim(j,2)                 % If next joint angle is greater than joint limit ...
+                        qdot(i,j) = 0; % Stop the motor
                     end
-                    animate(self.robot.model, qMatrix(i,:));
-                    %Change Tray Position
-                    %Condition, is tray being moved? Use a case basis possibly?
-                    if self.robot.mode==4
-                        A=self.robot.model.fkine(qMatrix(i,:));
-                        self.tray_x = A(1,4);
-                        self.tray_y = A(2,4);
-                        self.tray_z = A(3,4);
-                        tray_location = transl(self.tray_x, self.tray_y, self.tray_z);
-                        self.tray.tray.base = transl(self.tray_x, self.tray_y, self.tray_z);
-                        animate(self.tray.tray,0);
-                        %Insert tray movement. Might need to be implemented in
-                        %Spawn instead
-                        %plot3d(self.tray.tray,0,'workspace',self.workspace,'view',[-30,30],'delay',0);
-                        %Tray(num2str(0),tray_location, self.workspace);
-                        self.CakeLocationSpawn();
-                        set(gca, 'CameraPosition', [-700 3000 1000]);
-                    end
-                    if  self.robot.mode ==3
-                        A=self.robot.model.fkine(qMatrix(i,:));
-                        %Implement Rotation Element
-                        bottle_location = transl(A(1,4),A(2,4),A(3,4));
-                        self.bottle.bottle.base = bottle_location;
-                        animate(self.bottle.bottle,0);
-                        
-                    end
+                end
+                qMatrix(i+1,:) = qMatrix(i,:) + deltaT*qdot(i,:);                         	% Update next joint state based on joint velocities
+                positionError(:,i) = x(:,i+1) - T(1:3,4);                               % For plotting
+            end
+            
+            
+            for i=1:steps
+                while self.robot.stop_status ==1
+                    %Do nothing
+                    %Problem where it cannot break from loop properly.
+                    %Investigate further
+                    self.robot.stop_status
+                end
+                %fprintf('Animate %d Number \n,i');
+                animate(self.robot.model, qMatrix(i,:));
+                %Change Tray Position
+                %Condition, is tray being moved? Use a case basis possibly?
+                if self.robot.mode==4
+                    A=self.robot.model.fkine(qMatrix(i,:));
+                    self.tray_x = A(1,4);
+                    self.tray_y = A(2,4);
+                    self.tray_z = A(3,4);
+                    tray_location = transl(self.tray_x, self.tray_y, self.tray_z);
+                    self.tray.tray.base = transl(self.tray_x, self.tray_y, self.tray_z);
+                    animate(self.tray.tray,0);
+                    %Insert tray movement. Might need to be implemented in
+                    %Spawn instead
+                    %plot3d(self.tray.tray,0,'workspace',self.workspace,'view',[-30,30],'delay',0);
+                    %Tray(num2str(0),tray_location, self.workspace);
+                    self.CakeLocationSpawn();
+                    set(gca, 'CameraPosition', [-700 3000 1000]);
+                end
+                if  self.robot.mode ==3
+                    A=self.robot.model.fkine(qMatrix(i,:));
+                    %Implement Rotation Element
+                    bottle_location = transl(A(1,4),A(2,4),A(3,4));
+                    self.bottle.bottle.base = bottle_location;
+                    animate(self.bottle.bottle,0);
+                    
                 end
                 drawnow()
             end
         end
     end
 end
+
 
