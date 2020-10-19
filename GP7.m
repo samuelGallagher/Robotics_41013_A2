@@ -72,7 +72,7 @@ classdef GP7 < handle
            L4 = Link('d',-0.4,'a',0,'alpha',pi/2,'qlim',[deg2rad(-190),deg2rad(190)], 'offset',0);
            L5 = Link('d',0,'a',0,'alpha',pi/2,'qlim',[deg2rad(-135),deg2rad(135)], 'offset',pi/2);
            L6 = Link('d',-0.09,'a',-0.013,'alpha',0,'qlim',[deg2rad(-360),deg2rad(360)], 'offset', 0);
-           L7 = Link('d',0,'a',0,'alpha',0,'qlim',[deg2rad(-360),deg2rad(360)], 'offset', 0);
+           %L7 = Link('d',0,'a',0,'alpha',0,'qlim',[deg2rad(-360),deg2rad(360)], 'offset', 0);
            
             else
                 L1 = Link('d',0.0892,'a',0,'alpha',-pi/2,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
@@ -81,11 +81,11 @@ classdef GP7 < handle
                 L4 = Link('d',0.093,'a',0,'alpha',-pi/2,'offset',-pi/2,'qlim',[deg2rad(-360),deg2rad(360)]);
                 L5 = Link('d',0.093,'a',0,'alpha',-pi/2,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
                 L6 = Link('d',0,'a',0,'alpha',0,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
-                L7 = Link('d',0,'a',0,'alpha',0,'qlim',[deg2rad(-360),deg2rad(360)], 'offset', 0);
+                %L7 = Link('d',0,'a',0,'alpha',0,'qlim',[deg2rad(-360),deg2rad(360)], 'offset', 0);
                 
             end
             
-            self.model = SerialLink([L1 L2 L3 L4 L5 L6 L7],'name',name);
+            self.model = SerialLink([L1 L2 L3 L4 L5 L6 ],'name',name);
         end
         %% PlotAndColourRobot
         % Given a robot index, add the glyphs (vertices and faces) and
@@ -165,8 +165,8 @@ classdef GP7 < handle
             
             % 1.2) Allocate array data
             m = zeros(steps,1);             % Array for Measure of Manipulability
-            qMatrix = zeros(steps,7);       % Array for joint anglesR
-            qdot = zeros(steps,7);          % Array for joint velocities
+            qMatrix = zeros(steps,6);       % Array for joint anglesR
+            qdot = zeros(steps,6);          % Array for joint velocities
             theta = zeros(3,steps);         % Array for roll-pitch-yaw angles
             x = zeros(3,steps);             % Array for x-y-z trajectory
             
@@ -206,9 +206,9 @@ classdef GP7 < handle
                 else
                     lambda = 0;
                 end
-                invJ = inv(J'*J + lambda *eye(7))*J';                                   % DLS Inverse
+                invJ = inv(J'*J + lambda *eye(6))*J';                                   % DLS Inverse
                 qdot(i,:) = (invJ*xdot)';                                                % Solve the RMRC equation (you may need to transpose the         vector)
-                for j = 1:7                                                             % Loop through joints 1 to 6
+                for j = 1:6                                                             % Loop through joints 1 to 6
                     if qMatrix(i,j) + deltaT*qdot(i,j) < self.model.qlim(j,1)                     % If next joint angle is lower than joint limit...
                         qdot(i,j) = 0; % Stop the motor
                     elseif qMatrix(i,j) + deltaT*qdot(i,j) > self.model.qlim(j,2)                 % If next joint angle is greater than joint limit ...
@@ -268,8 +268,8 @@ classdef GP7 < handle
             
             % 1.2) Allocate array data
             m = zeros(steps,1);             % Array for Measure of Manipulability
-            qMatrix = zeros(steps,7);       % Array for joint anglesR
-            qdot = zeros(steps,7);          % Array for joint velocities
+            qMatrix = zeros(steps,6);       % Array for joint anglesR
+            qdot = zeros(steps,6);          % Array for joint velocities
             theta = zeros(3,steps);         % Array for roll-pitch-yaw angles
             x = zeros(3,steps);             % Array for x-y-z trajectory
             
@@ -286,7 +286,7 @@ classdef GP7 < handle
                 theta(3,i) = 0;                 % Yaw angle
             end
             T = [rpy2r(theta(1,1),theta(2,1),theta(3,1)) x(:,1);zeros(1,3) 1];          % Create transformation of first point and angle
-            q0 = zeros(1,7);                                                            % Initial guess for joint angles
+            q0 = zeros(1,6);                                                            % Initial guess for joint angles
             qMatrix(1,:) = self.model.ikcon(T,q0);                                            % Solve joint angles to achieve first waypoint
             
             % 1.4) Track the trajectory with RMRC
@@ -308,9 +308,9 @@ classdef GP7 < handle
                 else
                     lambda = 0;
                 end
-                invJ = inv(J'*J + lambda *eye(7))*J';                                   % DLS Inverse
+                invJ = inv(J'*J + lambda *eye(6))*J';                                   % DLS Inverse
                 qdot(i,:) = (invJ*xdot)';                                                % Solve the RMRC equation (you may need to transpose the         vector)
-                for j = 1:7                                                             % Loop through joints 1 to 6
+                for j = 1:6                                                             % Loop through joints 1 to 6
                     if qMatrix(i,j) + deltaT*qdot(i,j) < self.model.qlim(j,1)                     % If next joint angle is lower than joint limit...
                         qdot(i,j) = 0; % Stop the motor
                     elseif qMatrix(i,j) + deltaT*qdot(i,j) > self.model.qlim(j,2)                 % If next joint angle is greater than joint limit ...
@@ -452,7 +452,7 @@ classdef GP7 < handle
                 J = self.model.jacob0(q);%q is our 6x6 matrix for jacobian.
                 
                 lambda = 0.1;
-                Jinv_dls = inv((J'*J)+lambda^2*eye(7))*J';
+                Jinv_dls = inv((J'*J)+lambda^2*eye(6))*J';
                 
                 %dx = J*dq We want opposite of this
                 %dq = inv(J)*dx

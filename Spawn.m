@@ -6,7 +6,6 @@ classdef Spawn < handle
         Property1;
         robot;
         tableZ;
-        %Big problems with cake Array. Not sure how to address yet
         cakeArray=zeros(1,12);
         CurrentQValues;
         stop_status=0;
@@ -32,7 +31,7 @@ classdef Spawn < handle
             
             self.robot = GP7(false);
             self.robot.model.base = transl(-0.25, 0.45, self.tableZ-0.2);
-            self.CurrentQValues = zeros(1,7);
+            self.CurrentQValues = zeros(1,6);
             self.workspace = [-1 1 -1 1 -0.3 1];
             %Tray location, decided previously
             self.tray_x = -0.7;
@@ -134,8 +133,8 @@ classdef Spawn < handle
                     
                     %RMRC for location
                     if self.robot.mode == 3
-                        %self.SpawnRMRCPoint(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i)+0.2);
-                        %pause(2);
+                        self.SpawnRMRCPoint(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i)+0.2, -pi/2, 0, pi/2, 1.5);
+                        pause(1);
                     end
                     
                     animate(self.cake_cache(i).cake,0);
@@ -164,11 +163,6 @@ classdef Spawn < handle
             self.CurrentQValues = q;
             self.robot.model.animate(q);
             drawnow();
-            while self.stop_status ==1
-                %while loop
-                fprintf('Currently Stopped');
-                
-            end
         end
         function stopChange(self, state)
             if state == 1
@@ -196,7 +190,7 @@ classdef Spawn < handle
         
         
         
-        function SpawnRMRCPoint(self, xend, yend, zend)
+        function SpawnRMRCPoint(self, xend, yend, zend, end_roll, end_pitch, end_yaw, t)
             %function Lab9Solution_Question1(self, xstart, ystart, zstart, xend, yend, zend)
             q_current = self.robot.returnRobotJoints()
             T = self.robot.model.fkine(q_current)
@@ -204,14 +198,18 @@ classdef Spawn < handle
             ystart = T(2,4)
             zstart = T(3,4);
             % http://planning.cs.uiuc.edu/node103.html
-
+            rotm = tform2rotm(T);
+            eulZYX = rotm2eul(rotm);
+            start_roll = eulZYX(1,1);
+            start_pitch = eulZYX(1,2);
+            start_yaw = eulZYX(1,3);
             %T_goal = self.model.fkine(q_goal);
             %xend = T_goal(1,4);
             %yend = T_goal(2,4);
             %zend = T_goal(3,4);
             % 1.1) Set parameters for the simulation
             t = 5;             % Total time (s)
-            deltaT = 0.025;      % Control frequency
+            deltaT = 0.1;      % Control frequency
             steps = t/deltaT;   % No. of steps for simulation
             delta = 2*pi/steps; % Small angle change
             epsilon = 0.1;      % Threshold value for manipulability/Damped Least Squares
@@ -219,8 +217,8 @@ classdef Spawn < handle
             
             % 1.2) Allocate array data
             m = zeros(steps,1);             % Array for Measure of Manipulability
-            qMatrix = zeros(steps,7);       % Array for joint anglesR
-            qdot = zeros(steps,7);          % Array for joint velocities
+            qMatrix = zeros(steps,6);       % Array for joint anglesR
+            qdot = zeros(steps,6);          % Array for joint velocities
             theta = zeros(3,steps);         % Array for roll-pitch-yaw angles
             x = zeros(3,steps);             % Array for x-y-z trajectory
             
@@ -237,29 +235,11 @@ classdef Spawn < handle
                 x(2,i) = (1-s(i))*ystart + s(i)*yend; % Points in y
                 end
                 x(3,i) = (1-s(i))*zstart + s(i)*zend; % Points in z
+                theta(1,i) = (1-s(i))*(-start_roll)+s(i)*(end_roll);                 % Roll angle
+                theta(2,i) = (1-s(i))*(-start_pitch)+s(i)*(end_pitch);            % Pitch angle
+                theta(3,i) = (1-s(i))*(-start_yaw)+s(i)*(end_yaw);                 % Yaw angle
                 %Use theta(1,i)=(1-s(i)*roll_start+s(i)*roll_end for gradual movements;
-                if self.robot.approach_mode == 0 %General Movement
-                    theta(1,i) = 0;                 % Roll angle
-                    theta(2,i) = 0;                     % Pitch angle
-                    theta(3,i) = 0;                  % Yaw angle
-                elseif self.robot.approach_mode ==1 %Approach Oven Door
-                    theta(1,i) = 0;                 % Roll angle
-                    theta(2,i) = -pi/2;                     % Pitch angle
-                    theta(3,i) = pi/2;                  % Yaw angle
-                elseif self.robot.approach_mode == 2 % Approach Bottle & Turn Back Bottle
-                    theta(1,i) = -pi/2;                 % Roll angle
-                    theta(2,i) = 0;                     % Pitch angle
-                    theta(3,i) = pi/2;                  % Yaw angle
-                elseif self.robot.approach_mode == 3 % Turn Bottle & Squeegies
-                    theta(1,i) = -pi/2;                 % Roll angle
-                    theta(2,i) = 0;                     % Pitch angle
-                    theta(3,i) = 0;                  % Yaw angle
-                elseif self.robot.approach_mode == 4 % Approach Tray & Place Tray
-                    theta(1,i) = -pi/2;                 % Roll angle
-                    theta(2,i) = 0;                     % Pitch angle
-                    theta(3,i) = 0;                  % Yaw angle
-                    
-                end
+
             end
             T = [rpy2r(theta(1,1),theta(2,1),theta(3,1)) x(:,1);zeros(1,3) 1];          % Create transformation of first point and angle
             %q0 = zeros(1,7);                                                            % Initial guess for joint angles
@@ -285,9 +265,9 @@ classdef Spawn < handle
                 else
                     lambda = 0;
                 end
-                invJ = inv(J'*J + lambda *eye(7))*J';                                   % DLS Inverse
+                invJ = inv(J'*J + lambda *eye(6))*J';                                   % DLS Inverse
                 qdot(i,:) = (invJ*xdot)';                                                % Solve the RMRC equation (you may need to transpose the         vector)
-                for j = 1:7                                                             % Loop through joints 1 to 6
+                for j = 1:6                                                             % Loop through joints 1 to 6
                     if qMatrix(i,j) + deltaT*qdot(i,j) < self.robot.model.qlim(j,1)                     % If next joint angle is lower than joint limit...
                         qdot(i,j) = 0; % Stop the motor
                     elseif qMatrix(i,j) + deltaT*qdot(i,j) > self.robot.model.qlim(j,2)                 % If next joint angle is greater than joint limit ...
