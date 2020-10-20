@@ -180,16 +180,16 @@ classdef Spawn < handle
         
         
         function ColourChoice(self, colour);
-            if colour == 'yellow'
+            if contains('yellow', colour)
                 self.bottle_cache = self.bottleDrop('yellow');
                 self.cake_cache = self.cakeDrop('yellow');
             end
-            if colour == 'red'
+            if contains('red', colour)
                 self.bottle_cache = self.bottleDrop('yellow');
                 self.cake_cache = self.cakeDrop('red');
             fprintf('Colour Choice Red Specifically');
             end
-            if colour == 'blue'
+            if contains('blue', colour)
                 self.bottle_cache = self.bottleDrop('yellow');
                 self.cake_cache = self.cakeDrop('blue');
             end
@@ -315,7 +315,8 @@ classdef Spawn < handle
                     %Do nothing
                     %Problem where it cannot break from loop properly.
                     %Investigate further
-                    self.robot.stop_status
+                    self.robot.stop_status;
+                    pause(0.5);
                 end
                 
                 
