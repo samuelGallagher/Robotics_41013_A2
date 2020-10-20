@@ -21,7 +21,6 @@ classdef Spawn < handle
         Cake_Locations;
         workspace;
         cake_cache;
-        previous_RPY;
     end
     
     methods
@@ -29,7 +28,7 @@ classdef Spawn < handle
             self.tableZ=0.84;
             cakeArray=zeros(1,12);
             stop_status=0;
-            self.previous_RPY = zeros(1,3);
+            
             self.robot = GP7(false);
             self.robot.model.base = transl(-0.25, 0.45, self.tableZ-0.2);
             self.CurrentQValues = zeros(1,6);
@@ -200,14 +199,11 @@ classdef Spawn < handle
             ystart = T(2,4);
             zstart = T(3,4);
             % http://planning.cs.uiuc.edu/node103.html
-            %rotm = tform2rotm(T);
-            %eulZYX = rotm2eul(rotm);
-            %start_roll = eulZYX(1,1)
-            %start_pitch = eulZYX(1,2)
-            %start_yaw = eulZYX(1,3)
-            start_roll = self.previous_RPY(1,1);
-            start_pitch = self.previous_RPY(1,2);
-            start_yaw = self.previous_RPY(1,3);
+            rotm = tform2rotm(T);
+            eulZYX = rotm2eul(rotm);
+            start_roll = eulZYX(1,1);
+            start_pitch = eulZYX(1,2);
+            start_yaw = eulZYX(1,3);
             %T_goal = self.model.fkine(q_goal);
             %xend = T_goal(1,4);
             %yend = T_goal(2,4);
@@ -245,22 +241,14 @@ classdef Spawn < handle
                 theta(2,i) = (1-s(i))*(-start_pitch)+s(i)*(end_pitch);            % Pitch angle
                 theta(3,i) = (1-s(i))*(-start_yaw)+s(i)*(end_yaw);                 % Yaw angle
                 if start_roll == end_roll
-                theta(1,i) = end_roll;    
+                    
                 end
                 if start_pitch == end_pitch
-                theta(2,i) = end_pitch;    
+                    
                 end
                 if start_yaw == end_yaw
-                theta(3,i) = end_yaw;    
+                    
                 end
-                if self.robot.mode == 2
-                    theta(1,i) = end_roll;                    
-                    theta(2,i) = end_pitch;                    
-                    theta(3,i) = end_yaw;   
-                end
-
-
-
                 %Use theta(1,i)=(1-s(i)*roll_start+s(i)*roll_end for gradual movements;
 
             end
@@ -354,7 +342,6 @@ classdef Spawn < handle
                 end
                 drawnow()
             end
-            self.previous_RPY = [end_roll, end_pitch, end_yaw]
         end
     end
 end
