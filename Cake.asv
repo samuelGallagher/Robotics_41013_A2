@@ -1,36 +1,36 @@
-classdef Bottle < handle
-    %BOTTLE Summary of this class goes here
+classdef Cake < handle
+    %CAKE Summary of this class goes here
     %
     properties (Constant)
         
     end
     properties
         id
-        bottle
+        cake
         workspaceDimensions
         colour
     end
     methods
-        function self = Bottle(id, location, workspaceDimensions, colour)
+        function self = Cake(id, location, workspaceDimensions, colour)
             %Create Object
             self.id = id;
             %self.colour = colour;
-            self.bottle.workspaceDimensions = workspaceDimensions;
-            self.bottle = self.GetBottleModel(id, colour)
-            self.bottle.base = location;
-            self.bottle.animate(0);
+            self.cake.workspaceDimensions = workspaceDimensions;
+            self.cake = self.GetCakeModel(id, colour)
+            self.cake.base = location;
+            self.cake.animate(0);
         end
-        function model = GetBottleModel(self, name, colour)
+        function model = GetCakeModel(self, name, colour)
             if nargin < 1
-                name = 'Bottle';
+                name = 'Cake';
             end
             colour
-            if contains('red', colour)
-                [faceData,vertexData, plyData] = plyread('Squeegie_Red.ply','tri');
-            elseif contains('yellow', colour)
-                [faceData,vertexData, plyData] = plyread('Squeegie_Yellow.ply','tri');
-            elseif contains('blue', colour)
-                [faceData,vertexData, plyData] = plyread('Squeegie_Blue.ply','tri');
+            if contains('red', red)
+                [faceData,vertexData, plyData] = plyread('Cake_Full.ply','tri');
+            elseif colour == 'yellow'
+                [faceData,vertexData, plyData] = plyread('Cake_Full.ply','tri');
+            elseif colour == 'blue'
+                [faceData,vertexData, plyData] = plyread('Cake_Full.ply','tri');
             end
             
             L1 = Link('alpha',0,'a',0,'d',0,'offset',0);

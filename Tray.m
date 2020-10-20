@@ -15,25 +15,32 @@ classdef Tray < handle
      
     end
     
-    methods(Static)
+    methods
         %% GetTrayModel
-        function model = GetTrayModel(name)
-            [faceData,vertexData] = plyread('tray.ply','tri');
+        function model = GetTrayModel(self, name)
+            [faceData,vertexData, plyData] = plyread('tray.ply','tri');
             L1 = Link('alpha',0,'a',0,'d',0,'offset',0);
             model = SerialLink(L1,'name',name);
             model.faces = {faceData,[]};
             vertexData(:,2) = vertexData(:,2);
             model.points = {vertexData,[]};
+            %Assistance
+            plot3d(model,0,'workspace',self.workspaceDimensions,'delay',0);
+            handles = findobj('Tag', model.name);
+            h = get(handles,'UserData');
+            h.link(1).Children.FaceVertexCData = [plyData.vertex.red ...
+                                                 ,plyData.vertex.green ...
+                                                 ,plyData.vertex.blue]/255;
+            h.link(1).Children.FaceColor = 'interp';    
         end
         
-    end
-    methods
         function self = Tray(id, location, workspaceDimensions)
             %Create Object
             self.id = id;
+            self.workspaceDimensions = workspaceDimensions;
             self.tray = self.GetTrayModel(id)
             self.tray.base = location;
-            plot3d(self.tray,0,'workspace',workspaceDimensions,'view',[-30,30],'delay',0);
+            self.tray.animate(0);
         end
     end
 end

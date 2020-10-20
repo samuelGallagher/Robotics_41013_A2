@@ -24,12 +24,11 @@ classdef Bottle < handle
             if nargin < 1
                 name = 'Bottle';
             end
-            colour
-            if contains('red', colour)
+            if colour == 'red'
                 [faceData,vertexData, plyData] = plyread('Squeegie_Red.ply','tri');
-            elseif contains('yellow', colour)
+            elseif colour == 'yellow'
                 [faceData,vertexData, plyData] = plyread('Squeegie_Yellow.ply','tri');
-            elseif contains('blue', colour)
+            elseif colour == 'blue'
                 [faceData,vertexData, plyData] = plyread('Squeegie_Blue.ply','tri');
             end
             
