@@ -3,31 +3,51 @@ classdef Spawn < handle
     %   Detailed explanation goes here
     
     properties
-        Property1;
+        %Container for GP7 class object
         robot;
+        %Height set to base starting position for several objects
         tableZ;
+        %Empty array used to hold data on Cake Class objects
         cakeArray=zeros(1,12);
+        %Container for current Q joint values
         CurrentQValues;
+        %Variable linked to E-Stop, start at unused
         stop_status=0;
+        %Container for Tray class object
         tray;
+        %Container for Door class object
         door;
+        %Container for Bottle Class object
         bottle;
+        %XYZ variables used for transformation of Tray Object
         tray_x;
         tray_y;
         tray_z;
+        %XYZ variables used for transformation of Bottle Object
         bottle_x;
         bottle_y;
         bottle_z;
+        %Matrix of locations for Cake Object Translation
         Cake_Locations;
+        %Container for bottle location 
         bottle_location;
+        %Workspace used in all spawning of objects
         workspace;
+        %Container for Cake Objects
         cake_cache;
+        %Container for Bottle Object
         bottle_cache;
+        %Previous Roll, Pitch, Yaw used to guide SpawnRMRCPoint function
+        %with relative accuracy
         previous_RPY;
     end
     
     methods
         function self = Spawn()
+            %Spawn class initialised. Called by App, build environment and
+            %spawn relevant class objects within their starting positions
+            
+            %Starting Information
             self.tableZ=0.84;
             cakeArray=zeros(1,12);
             stop_status=0;
@@ -36,34 +56,26 @@ classdef Spawn < handle
             self.robot.model.base = transl(-0.25, 0.45, 0.58);
             self.CurrentQValues = zeros(1,6);
             self.workspace = [-1 1 -1 1 -0.3 1];
-            %Tray location, decided previously
+            %Tray Information
             self.tray_x = -0.62;
             self.tray_y = 0.45;
             self.tray_z = self.tableZ+0.04;
             tray_location = transl(self.tray_x, self.tray_y, self.tray_z);
+            %Door Information
             door_location = transl(0.41,0.64,0.17);
+            %Bottle Information
             self.bottle_x = -0.62;
             self.bottle_y = 0.1;
             self.bottle_z = self.tableZ+0.29;
             self.bottle_location = transl(self.bottle_x,self.bottle_y,self.bottle_z);
             self.robot.PlotAndColourRobot();%robot,workspace);
             
+            %Call Object Classes
             self.tray = Tray(num2str(13), tray_location, self.workspace);
             self.door = Door(num2str(14),door_location,self.workspace);
-            %self.bottle = Bottle(num2str(15),transl(0,0,0),self.workspace,'yellow');
-            
-            %origin_spawn(i) = Cake(num2str(i), transl(0,0,0), self.workspace, colour);
             
             
-            %self.bottle = Bottle(num2str(15),bottle_location,self.workspace);
-            %self.tray.tray.base = transl(0-1,1,0.5);
-            %animate(self.tray.tray,0);
-            %plot3d(self.tray.tray,0,'workspace',self.workspace,'view',[-30,30],'delay',0);
-            
-            % Insert Simulated Environment
-            % *****Replace this section with a class function, with choice of simple or
-            % complex environment*************
-            
+%% Simulated Environment
             %Insert simulation environment 'labview.ply'
             [f,v,data] = plyread('Bench.ply','tri');
             % Scale the colours to be 0-to-1 (they are originally 0-to-255
@@ -81,11 +93,8 @@ classdef Spawn < handle
                 ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
             hold on
             
-            %self.cake_cache = self.cakeDrop('yellow');
-            %self.bottle_cache = self.bottleDrop('yellow');
-            %self.bottle_cache(1).bottle.base = self.bottle_location;
-            %animate(self.bottle_cache(1).bottle,0);
-            
+
+            %Set Camera Position isometric
             set(gca, 'CameraPosition', [-700 3000 1000]);
             
         end
@@ -93,7 +102,7 @@ classdef Spawn < handle
         %Place cake as 1 in position that is given as positive
         %When called in GUI, this should result in a set of 0's and 1's
         %determining which cupcakes are used. example of first three is
-        %[1 1 1 0 0 0 0 0 0 0 0 0]
+        %[1 1 1 0 0 0 0 0 0 0 0 0] Values update as per App input
         function CakeSlotChoice(self, id, value)
             for i = 1:12
                 if i == id
@@ -105,23 +114,25 @@ classdef Spawn < handle
             end
           
         end
-        
+        %Create 12 cake objects at origin of specified colour
         function origin_spawn = cakeDrop(self, colour)
             for i = 1:12
                 origin_spawn(i) = Cake(num2str(i), transl(0,0,0), self.workspace, colour);
             end
         end
+        %Create bottle object of specified colour at origin
         function bottle_spawn = bottleDrop(self, colour)
             for i = 1:1
                 bottle_spawn(i) = Bottle(num2str(15), transl(0,0,0), self.workspace, colour);
             end
         end
+        %Update location of cakes based on location of Tray Object
         function CakeLocationSpawn(self)
             
             %Defining the location for cupcakes
             self.Cake_Locations = zeros(12,3);
-            %self.Cake_Locations(1,:) = self.tray_x, self.tray_y, self.tray_z
             
+            %Locations of cakes align to App control input
             self.Cake_Locations= [
             %Top of Tray
             ;self.tray_x+0.085,     self.tray_y-0.13,    self.tray_z-0.04...   %1
@@ -140,49 +151,50 @@ classdef Spawn < handle
             ;self.tray_x,           self.tray_y+0.13,    self.tray_z-0.04...  %11
             ;self.tray_x-0.085,     self.tray_y+0.13,    self.tray_z-0.04]  %12
             
-        
+        %Using only cakes which have been determined for use using
+        %cakeArray, cycle through all possible locations, and place the
+        %specific cake in specific location
         for i = 1:12
             if 1==self.cakeArray(1,i)
                 cakePlace(:,:,i) = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
                 cake_placement = transl(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i));
                 
                 self.cake_cache(i).cake.base = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
-                %self.cake_cache.i.cake.base = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
-                %self.cake_cache(i) = Cake(num2str(i),cake_placement,self.workspace);
                 
-                %RMRC for location
+                %GP7 makes RMRC to location, simulating population of cake
+                %objects individually
                 if self.robot.mode == 3
                     self.SpawnRMRCPoint(cakePlace(1,4,i),cakePlace(2,4,i)+0.2,cakePlace(3,4,i)+0.3, -pi/2, 0, pi/2, 1.5);
                     pause(1);
                 end
-                
+                %Update positional data through animate
                 animate(self.cake_cache(i).cake,0);
-                %Cake(num2str(i),cake_placement,self.workspace);
-                
-            end
-            %set(gca, 'CameraPosition', [-700 3000 1000]);
-            
+            end            
         end
         
         
         
         end
+        %Instantaneous application of q values, used in joint manipulation
+        %via app
         function RobotPoseAnimate(self,q)
             self.CurrentQValues = q;
             self.robot.model.animate(q);
             drawnow();
         end
+        %Stop determined by emergency stop via app.
         function eStop(self)
             while self.stop_status == 1
                 pause(0.1);
             end
         end
+        %Resume determined by emergency stop via app.
         function eStopResume(self)
             self.stop_status = 0;
         end
         
         
-        
+        %Spawn cakes and bottle using input via app to determine colour
         function ColourChoice(self, colour);
             if contains('yellow', colour)
                 self.bottle_cache = self.bottleDrop('yellow');
@@ -203,33 +215,26 @@ classdef Spawn < handle
         end
         
         
-        
+        %RMRC calculations for movement between current joint positions and
+        %joint positions that when applied result in the input XYZ, roll,
+        %pitch, yaw input. 
+        %Time input is also considered
         function SpawnRMRCPoint(self, xend, yend, zend, end_roll, end_pitch, end_yaw, time)
-            %function Lab9Solution_Question1(self, xstart, ystart, zstart, xend, yend, zend)
-            %q = self.model.getpos();
+            %RMRC function based on Lab 9 Question 1 solutions for Robotics
+
+            
+            %Populate starting positional data
             q_start = self.robot.model.getpos();
             Transform = self.robot.model.fkine(q_start);
             xstart = Transform(1,4);
             ystart = Transform(2,4);
             zstart = Transform(3,4);
-            
-            
-            % http://planning.cs.uiuc.edu/node103.html
-            %rotm = tform2rotm(T);
-            %eulZYX = rotm2eul(rotm);
-            %start_roll = eulZYX(1,1)
-            %start_pitch = eulZYX(1,2)
-            %start_yaw = eulZYX(1,3)
             start_roll = self.previous_RPY(1,1);
             start_pitch = self.previous_RPY(1,2);
             start_yaw = self.previous_RPY(1,3);
-            %T_goal = self.model.fkine(q_goal);
-            %xend = T_goal(1,4);
-            %yend = T_goal(2,4);
-            %zend = T_goal(3,4);
-            % 1.1) Set parameters for the simulation
-            %t = 5;             % Total time (s)
-            time
+  
+            %Step manipulation information
+            time;             % Total time (s)
             deltaT = 0.05;      % Control frequency
             steps = time/deltaT;   % No. of steps for simulation
             delta = 2*pi/steps; % Small angle change
@@ -244,13 +249,14 @@ classdef Spawn < handle
             x = zeros(3,steps);             % Array for x-y-z trajectory
             
             % 1.3) Set up trajectory, initial pose
-            %Possible have a case system for types of trajectory (stay
-            %parallel to ground, etc)
-            s = lspb(0,1,steps);                % Trapezoidal trajectory scalar
+            s = lspb(0,1,steps);                % Trapezoidal trajectory scalar, from 0 to 1
             for i=1:steps
-                %Do if approach = straight, x curve etc.
-
-                %Use 
+                %Trajectory is determined by starting and ending position
+                %within XYZ and RPY. 
+                %robot mode is used to determine if trajectory should be
+                %a direct or curved approach, and which direction to curve
+                %in
+                
                 x(1,i) = (1-s(i))*xstart + s(i)*xend; % Points in x
                 if self.robot.mode ==4
                     %x(2,i) = ystart - 0.3*cos(i*delta);
@@ -267,9 +273,13 @@ classdef Spawn < handle
                 else
                 x(3,i) = (1-s(i))*zstart + s(i)*zend; % Points in z
                 end
+                %Angles are assumed to have direct movement between start
+                %and end unless otherwise specified
                 theta(1,i) = (1-s(i))*(-start_roll)+s(i)*(end_roll);                 % Roll angle
                 theta(2,i) = (1-s(i))*(-start_pitch)+s(i)*(end_pitch);            % Pitch angle
                 theta(3,i) = (1-s(i))*(-start_yaw)+s(i)*(end_yaw);                 % Yaw angle
+                %If starting and ending rotation are equal, no
+                %transformation is applied in order to simplify movement
                 if start_roll == end_roll
                     theta(1,i) = end_roll;
                 end
@@ -284,12 +294,11 @@ classdef Spawn < handle
                     theta(2,i) = end_pitch;
                     theta(3,i) = end_yaw;
                 end
-                
-                
-                
-                %Use theta(1,i)=(1-s(i)*roll_start+s(i)*roll_end for gradual movements;
+   
                 
             end
+            %Calculations using above points, determining Q values that
+            %result in the exact position and rotation at each instance
             T = [rpy2r(theta(1,1),theta(2,1),theta(3,1)) x(:,1);zeros(1,3) 1];          % Create transformation of first point and angle
             %q0 = zeros(1,7);                                                            % Initial guess for joint angles
             q0 = q_start;
@@ -327,45 +336,41 @@ classdef Spawn < handle
                 positionError(:,i) = x(:,i+1) - T(1:3,4);                               % For plotting
             end
             for i=1:steps
-                
+                %If Emergency E-Stop is activated within app, this function
+                %stalls within for loop until release. Upon release will
+                %continue with current aim trajectory
                 self.eStop();
-                
-                %fprintf('Animate %d Number \n,i');
+                %step animation of GP7
                 animate(self.robot.model, qMatrix(i,:));
-                %Change Tray Position
-                %Condition, is tray being moved? Use a case basis possibly?
                 
                 
-                
-                if self.robot.mode ==2
+                if self.robot.mode ==2 % Moving Door Open Mode
                     %Affect the translation of the door
                     self.door.door.base = transl(0.41,0.64,0.17)*trotx((-pi/4)*(i/steps));
                     animate(self.door.door,0);
                 end
-                if self.robot.mode ==7
+                if self.robot.mode ==7% Moving Door Closed Mode
+                    %Affect the translation of the door
                     self.door.door.base = transl(0.41,0.64,0.17)*trotx((-pi/4)-(-pi/4)*(i/steps));
                     animate(self.door.door,0);
                 end
-                if self.robot.mode==4
+                if self.robot.mode==4 % Tray Movement Mode, includes movement of Cakes
                     A=self.robot.model.fkine(qMatrix(i,:));
                     self.tray_x = A(1,4);
                     self.tray_y = A(2,4);
-                    modified_y = (self.tray_y-0.3);
+                    modified_y = (self.tray_y-0.3); % Slight change in location to accomodate for gripper approach
                     self.tray_z = A(3,4);
                     tray_location = transl(self.tray_x, modified_y, self.tray_z);
                     self.tray.tray.base = transl(self.tray_x, modified_y, self.tray_z);
                     animate(self.tray.tray,0);
                     self.tray_y = modified_y;
-                    %Insert tray movement. Might need to be implemented in
-                    %Spawn instead
-                    %plot3d(self.tray.tray,0,'workspace',self.workspace,'view',[-30,30],'delay',0);
-                    %Tray(num2str(0),tray_location, self.workspace);
+
+                    %Cake Movement Linked, activates at same time as tray
+                    %thus updating to tray positional data
                     self.CakeLocationSpawn();
-                    %set(gca, 'CameraPosition', [-700 3000 1000]);
                 end
-                if  self.robot.mode ==3
+                if  self.robot.mode ==3 % Moving Bottle Mode
                     A=self.robot.model.fkine(qMatrix(i,:));
-                    %Implement Rotation Element
                     self.bottle_location = transl(A(1,4),A(2,4)-0.2,A(3,4));
                     self.bottle_cache(1).bottle.base = self.bottle_location;
                     animate(self.bottle_cache(1).bottle,0);

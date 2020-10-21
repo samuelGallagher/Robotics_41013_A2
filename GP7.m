@@ -1,36 +1,29 @@
-%Current Functionality:
-%No Functionality, based on UR5 robot arm without parameters, links, or ply
-
 
 classdef GP7 < handle
+    % GP7 object class. MOTOMAN GP7 robot simulated using data from
+    % manufacturers. 
+    % Class enables functionality to animate GP7 between joint matrix's and
+    % end effector locations
+    % RMRC used for gradual and realistic movement using XYZ or q input. 
+    %Free movement enabled using a simulated joystick.
+    %VirtualTeachPendant.mlapp used
     properties
         %> Robot model
         model;
-        
+        %Status used within E-Stop
         stop_status;
         
-        %>
+        %Workspace
         workspace = [-3 2 -2 2 -0.3 2];
         
-        %> Flag to indicate if gripper is used
+        %> Flag to indicate if gripper is used 
+        %[Not utilised within this assignment]
         useGripper = false;
-        
+        %Robot mode, variable used to cycle between possible movement
+        %requirements
         mode;
-        
+        %variable used to cycle between several set end effector rotations
         approach_mode;
-        
-        %Position of food given by GUI
-        foodPos;
-        
-        %Number of food pieces placing onto tray
-        foodOccurance;
-        
-        %Bool for door instance. true if currently closed, false if
-        %currently open
-        doorState;
-        
-        %Grip State second flag bool
-        gripState;
     end
     
     methods%% Class for UR5 robot simulation
@@ -52,11 +45,9 @@ classdef GP7 < handle
             
         end
         
-        %% GetUR5Robot
-        % Given a name (optional), create and return a UR5 robot model
+        %% GetGP7Robot
+        % Based on LinearUR5() object class by Peter Corke
         function GetGP7Robot(self)
-            %     if nargin < 1
-            % Create a unique name (ms timestamp after 1ms pause)
             pause(0.001);
             name = ['GP_7_',datestr(now,'yyyymmddTHHMMSSFFF')];
             %     end
@@ -64,7 +55,7 @@ classdef GP7 < handle
             %Joint limits from motion range using:
             % https://www.motoman.com/en-us/products/robots/industrial/assembly-handling/gp-series/gp7
             toggle = 0;
-            
+            %Joint information and DH parameters
             if toggle == 0
            L1 = Link('d',0.33,'a',0.04,'alpha',pi/2,'qlim',[deg2rad(-170),deg2rad(170)], 'offset',0); 
            L2 = Link('d',0,'a',0.45,'alpha',0,'qlim', [deg2rad(-65),deg2rad(145)], 'offset',pi/2);
@@ -73,7 +64,7 @@ classdef GP7 < handle
            L5 = Link('d',0,'a',0,'alpha',pi/2,'qlim',[deg2rad(-135),deg2rad(135)], 'offset',pi/2);
            L6 = Link('d',-0.09,'a',-0.013,'alpha',0,'qlim',[deg2rad(-360),deg2rad(360)], 'offset', 0);
            %L7 = Link('d',0,'a',0,'alpha',0,'qlim',[deg2rad(-360),deg2rad(360)], 'offset', 0);
-           
+           %Testing DH parameters of UR5 used in comparative stages
             else
                 L1 = Link('d',0.0892,'a',0,'alpha',-pi/2,'offset',0,'qlim',[deg2rad(-360),deg2rad(360)]);
                 L2 = Link('d',0.1357,'a',0.425,'alpha',-pi,'offset',-pi/2,'qlim',[deg2rad(-90),deg2rad(90)]);
@@ -90,6 +81,7 @@ classdef GP7 < handle
         %% PlotAndColourRobot
         % Given a robot index, add the glyphs (vertices and faces) and
         % colour them in if data is available
+        %Taken from UR5 Function by Peter Corke
         function PlotAndColourRobot(self)%robot,workspace)
             for linkIndex = 0:self.model.n
                 if self.useGripper && linkIndex == self.model.n
@@ -124,14 +116,16 @@ classdef GP7 < handle
             end
         end
         
-        
+        %Unused function
         function SubsequentLocation(self, q)
             T = self.model.fkine(q);
             
             
         end
+        %RMRC using q_goal
+        %Not utilised within demo
         function RMRC(self, q_goal)
-            %function Lab9Solution_Question1(self, xstart, ystart, zstart, xend, yend, zend)
+            %function taken from Lab 9 Question 1 solutions for Robotics
             q_current = self.returnRobotJoints();
             T = self.model.fkine(q_current)
             xstart = T(1,4);
@@ -154,8 +148,6 @@ classdef GP7 < handle
             end_yaw = eulZYX_goal(1,3);
             
             % 1.1) Set parameters for the simulation
-            %mdl_puma560;        % Load robot model
-            %robotman = GP7;
             t = 5;             % Total time (s)
             deltaT = 0.05;      % Control frequency
             steps = t/deltaT;   % No. of steps for simulation
@@ -237,29 +229,17 @@ classdef GP7 < handle
         
         
         
-        
-        
+        %RMRC using XYZ end locations for end effector
+        %Not utilised within demo        
         function RMRCPoint(self, xend, yend, zend)
-            %function Lab9Solution_Question1(self, xstart, ystart, zstart, xend, yend, zend)
+            %function taken from Lab 9 Question 1 solutions for Robotics
             q_current = self.returnRobotJoints();
             T = self.model.fkine(q_current);
             xstart = T(1,4);
             ystart = T(2,4);
             zstart = T(3,4);
-            
-            %xstart = -0.8;
-            %ystart = 0.3;
-            %zstart = 0.85
-            %xend = 0.3;
-            %yend = 0.8;
-            %zend = 0.85;
-            %T_goal = self.model.fkine(q_goal);
-            %xend = T_goal(1,4);
-            %yend = T_goal(2,4);
-            %zend = T_goal(3,4);
+
             % 1.1) Set parameters for the simulation
-            %mdl_puma560;        % Load robot model
-            %robotman = GP7;
             t = 5;             % Total time (s)
             deltaT = 0.05;      % Control frequency
             steps = t/deltaT;   % No. of steps for simulation
@@ -349,14 +329,15 @@ classdef GP7 < handle
         
         
         
-        
+        %Used within APP to return current joint positions of GP7
         function q = returnRobotJoints(self)
             q = self.model.getpos();
             disp(q);
         end
 
+        %Free Movement Function for virtual Joystick
         function FreeMovement(self)
-            % Lab 11 - Question 2 skeleton code
+            %Slightly adapted from Lab 11 - Question 2 skeleton code
             
             id = 1; % Note: may need to be changed if multiple joysticks present
             pendant = VirtualTeachPendant;
@@ -464,4 +445,3 @@ classdef GP7 < handle
         
     end
 end
-%function FreeMovement

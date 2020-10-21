@@ -1,7 +1,6 @@
 
 classdef Door < handle
-    %BRICK Summary of this class goes here
-    %
+    % Door object class. Spawn single model at desired location
     properties (Constant)
         
     end
@@ -21,7 +20,7 @@ classdef Door < handle
             model.faces = {faceData,[]};
             vertexData(:,2) = vertexData(:,2);
             model.points = {vertexData,[]};
-            %Assistance
+            %Enable true colour to be used
             plot3d(model,0,'workspace',self.workspaceDimensions,'delay',0);
             handles = findobj('Tag', model.name);
             h = get(handles,'UserData');
@@ -32,7 +31,7 @@ classdef Door < handle
         end
         
         function self = Door(id, location, workspaceDimensions)
-            %Create Object
+            %Create Object and spawn at provided location
             self.id = id;
             self.workspaceDimensions = workspaceDimensions;
             self.door = self.GetDoorModel(id)

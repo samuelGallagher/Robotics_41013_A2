@@ -1,5 +1,6 @@
 classdef Cake < handle
-    %CAKE Summary of this class goes here
+    %CAKE Object Class: Can choose between 3 colour models provided,
+    %requires input of colour string along with dimension of initial 
     %
     properties (Constant)
         
@@ -12,9 +13,8 @@ classdef Cake < handle
     end
     methods
         function self = Cake(id, location, workspaceDimensions, colour)
-            %Create Object
+            %Create Object and spawn at provided location
             self.id = id;
-            %self.colour = colour;
             self.cake.workspaceDimensions = workspaceDimensions;
             self.cake = self.GetCakeModel(id, colour)
             self.cake.base = location;
@@ -25,6 +25,7 @@ classdef Cake < handle
                 name = 'Cake';
             end
             colour
+            %Cycle between possible colours
             if contains('red', colour)
                 [faceData,vertexData, plyData] = plyread('Cake_Red.ply','tri');
             elseif contains('yellow', colour)
@@ -33,6 +34,7 @@ classdef Cake < handle
                 [faceData,vertexData, plyData] = plyread('Cake_Blue.ply','tri');
             end
             
+            %Link, model, vertex, face, ply data all required for colour
             L1 = Link('alpha',0,'a',0,'d',0,'offset',0);
             model = SerialLink(L1,'name',name);
             model.faces = {faceData,[]};

@@ -1,10 +1,6 @@
-%Missing
-%May need to include a rotation aspect (although the plan is not to rotate
-%the tray)
-
 classdef Tray < handle
-    %BRICK Summary of this class goes here
-    %
+    % TRAY object class. Spawn single model at desired location
+    %NOTE: Tray model is spawned at centre of tray instead of sides
     properties (Constant)
         
     end
@@ -24,7 +20,7 @@ classdef Tray < handle
             model.faces = {faceData,[]};
             vertexData(:,2) = vertexData(:,2);
             model.points = {vertexData,[]};
-            %Assistance
+            %Enable true colour to be used
             plot3d(model,0,'workspace',self.workspaceDimensions,'delay',0);
             handles = findobj('Tag', model.name);
             h = get(handles,'UserData');
@@ -35,7 +31,7 @@ classdef Tray < handle
         end
         
         function self = Tray(id, location, workspaceDimensions)
-            %Create Object
+            %Create Object and spawn at provided location
             self.id = id;
             self.workspaceDimensions = workspaceDimensions;
             self.tray = self.GetTrayModel(id)

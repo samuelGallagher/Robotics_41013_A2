@@ -1,5 +1,6 @@
 classdef Bottle < handle
-    %BOTTLE Summary of this class goes here
+    %BOTTLE Object Class: Can choose between 3 colour models provided,
+    %requires input of colour string along with dimension of initial 
     %
     properties (Constant)
         
@@ -12,9 +13,8 @@ classdef Bottle < handle
     end
     methods
         function self = Bottle(id, location, workspaceDimensions, colour)
-            %Create Object
+            %Create Object and spawn at provided location
             self.id = id;
-            %self.colour = colour;
             self.bottle.workspaceDimensions = workspaceDimensions;
             self.bottle = self.GetBottleModel(id, colour)
             self.bottle.base = location;
@@ -24,7 +24,7 @@ classdef Bottle < handle
             if nargin < 1
                 name = 'Bottle';
             end
-            colour
+            %Cycle between possible colours
             if contains('red', colour)
                 [faceData,vertexData, plyData] = plyread('Squeegie_Red.ply','tri');
             elseif contains('yellow', colour)
@@ -33,6 +33,7 @@ classdef Bottle < handle
                 [faceData,vertexData, plyData] = plyread('Squeegie_Blue.ply','tri');
             end
             
+            %Link, model, vertex, face, ply data all required for colour
             L1 = Link('alpha',0,'a',0,'d',0,'offset',0);
             model = SerialLink(L1,'name',name);
             model.faces = {faceData,[]};
