@@ -29,7 +29,7 @@ classdef Spawn < handle
         bottle_z;
         %Matrix of locations for Cake Object Translation
         Cake_Locations;
-        %Container for bottle location 
+        %Container for bottle location
         bottle_location;
         %Workspace used in all spawning of objects
         workspace;
@@ -75,7 +75,7 @@ classdef Spawn < handle
             self.door = Door(num2str(14),door_location,self.workspace);
             
             
-%% Simulated Environment
+            %% Simulated Environment
             %Insert simulation environment 'labview.ply'
             [f,v,data] = plyread('Bench.ply','tri');
             % Scale the colours to be 0-to-1 (they are originally 0-to-255
@@ -93,7 +93,7 @@ classdef Spawn < handle
                 ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
             hold on
             
-
+            
             %Set Camera Position isometric
             set(gca, 'CameraPosition', [-700 3000 1000]);
             
@@ -108,11 +108,11 @@ classdef Spawn < handle
                 if i == id
                     self.cakeArray(1,id) = 1;
                     if value == 0
-                       self.cakeArray(1,id) = 0; 
+                        self.cakeArray(1,id) = 0;
                     end
                 end
             end
-          
+            
         end
         %Create 12 cake objects at origin of specified colour
         function origin_spawn = cakeDrop(self, colour)
@@ -134,46 +134,46 @@ classdef Spawn < handle
             
             %Locations of cakes align to App control input
             self.Cake_Locations= [
-            %Top of Tray
-            ;self.tray_x+0.085,     self.tray_y-0.13,    self.tray_z-0.04...   %1
-            ;self.tray_x,           self.tray_y-0.13,    self.tray_z-0.04...  %2
-            ;self.tray_x-0.085,     self.tray_y-0.13,    self.tray_z-0.04...  %3
-            %Middle Upper of Tray
-            ;self.tray_x+0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %4
-            ;self.tray_x,           self.tray_y-0.04,    self.tray_z-0.04...  %5
-            ;self.tray_x-0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %6
-            %Middle Down of Tray
-            ;self.tray_x+0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %7
-            ;self.tray_x,           self.tray_y+0.04,    self.tray_z-0.04...  %8
-            ;self.tray_x-0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %9
-            %Bottom of Tray
-            ;self.tray_x+0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %10
-            ;self.tray_x,           self.tray_y+0.13,    self.tray_z-0.04...  %11
-            ;self.tray_x-0.085,     self.tray_y+0.13,    self.tray_z-0.04]  %12
+                %Top of Tray
+                ;self.tray_x+0.085,     self.tray_y-0.13,    self.tray_z-0.04...   %1
+                ;self.tray_x,           self.tray_y-0.13,    self.tray_z-0.04...  %2
+                ;self.tray_x-0.085,     self.tray_y-0.13,    self.tray_z-0.04...  %3
+                %Middle Upper of Tray
+                ;self.tray_x+0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %4
+                ;self.tray_x,           self.tray_y-0.04,    self.tray_z-0.04...  %5
+                ;self.tray_x-0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %6
+                %Middle Down of Tray
+                ;self.tray_x+0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %7
+                ;self.tray_x,           self.tray_y+0.04,    self.tray_z-0.04...  %8
+                ;self.tray_x-0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %9
+                %Bottom of Tray
+                ;self.tray_x+0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %10
+                ;self.tray_x,           self.tray_y+0.13,    self.tray_z-0.04...  %11
+                ;self.tray_x-0.085,     self.tray_y+0.13,    self.tray_z-0.04]  %12
             
-        %Using only cakes which have been determined for use using
-        %cakeArray, cycle through all possible locations, and place the
-        %specific cake in specific location
-        for i = 1:12
-            if 1==self.cakeArray(1,i)
-                cakePlace(:,:,i) = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
-                cake_placement = transl(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i));
-                
-                self.cake_cache(i).cake.base = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
-                
-                %GP7 makes RMRC to location, simulating population of cake
-                %objects individually
-                if self.robot.mode == 3
-                    self.SpawnRMRCPoint(cakePlace(1,4,i),cakePlace(2,4,i)+0.2,cakePlace(3,4,i)+0.3, -pi/2, 0, pi/2, 1.5);
-                    pause(1);
+            %Using only cakes which have been determined for use using
+            %cakeArray, cycle through all possible locations, and place the
+            %specific cake in specific location
+            for i = 1:12
+                if 1==self.cakeArray(1,i)
+                    cakePlace(:,:,i) = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
+                    cake_placement = transl(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i));
+                    
+                    self.cake_cache(i).cake.base = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
+                    
+                    %GP7 makes RMRC to location, simulating population of cake
+                    %objects individually
+                    if self.robot.mode == 3
+                        self.SpawnRMRCPoint(cakePlace(1,4,i),cakePlace(2,4,i)+0.2,cakePlace(3,4,i)+0.3, -pi/2, 0, pi/2, 1.5);
+                        pause(1);
+                    end
+                    %Update positional data through animate
+                    animate(self.cake_cache(i).cake,0);
                 end
-                %Update positional data through animate
-                animate(self.cake_cache(i).cake,0);
-            end            
-        end
-        
-        
-        
+            end
+            
+            
+            
         end
         %Instantaneous application of q values, used in joint manipulation
         %via app
@@ -184,7 +184,10 @@ classdef Spawn < handle
         end
         %Stop determined by emergency stop via app.
         function eStop(self)
+            counter = 0;
             while self.stop_status == 1
+                fprintf('Stopped for Count: %d \n', counter);
+                counter = counter+1;
                 pause(0.1);
             end
         end
@@ -217,11 +220,11 @@ classdef Spawn < handle
         
         %RMRC calculations for movement between current joint positions and
         %joint positions that when applied result in the input XYZ, roll,
-        %pitch, yaw input. 
+        %pitch, yaw input.
         %Time input is also considered
         function SpawnRMRCPoint(self, xend, yend, zend, end_roll, end_pitch, end_yaw, time)
             %RMRC function based on Lab 9 Question 1 solutions for Robotics
-
+            
             
             %Populate starting positional data
             q_start = self.robot.model.getpos();
@@ -232,7 +235,7 @@ classdef Spawn < handle
             start_roll = self.previous_RPY(1,1);
             start_pitch = self.previous_RPY(1,2);
             start_yaw = self.previous_RPY(1,3);
-  
+            
             %Step manipulation information
             time;             % Total time (s)
             deltaT = 0.05;      % Control frequency
@@ -252,7 +255,7 @@ classdef Spawn < handle
             s = lspb(0,1,steps);                % Trapezoidal trajectory scalar, from 0 to 1
             for i=1:steps
                 %Trajectory is determined by starting and ending position
-                %within XYZ and RPY. 
+                %within XYZ and RPY.
                 %robot mode is used to determine if trajectory should be
                 %a direct or curved approach, and which direction to curve
                 %in
@@ -260,18 +263,18 @@ classdef Spawn < handle
                 x(1,i) = (1-s(i))*xstart + s(i)*xend; % Points in x
                 if self.robot.mode ==4
                     %x(2,i) = ystart - 0.3*cos(i*delta);
-                x(2,i) = (1-s(i))*ystart + s(i)*yend+0.4*sin(pi*s(i)); % Points in y
+                    x(2,i) = (1-s(i))*ystart + s(i)*yend+0.4*sin(pi*s(i)); % Points in y
                 else
-                x(2,i) = (1-s(i))*ystart + s(i)*yend; % Points in y
+                    x(2,i) = (1-s(i))*ystart + s(i)*yend; % Points in y
                 end
                 if self.robot.mode ==1
-                x(3,i) = (1-s(i))*zstart + s(i)*zend+0.2*sin(pi*s(i)); % Points in z
+                    x(3,i) = (1-s(i))*zstart + s(i)*zend+0.2*sin(pi*s(i)); % Points in z
                 elseif self.robot.mode ==2
-                x(3,i) = (1-s(i))*zstart + s(i)*zend+0.02*sin(pi*s(i)); % Points in z
+                    x(3,i) = (1-s(i))*zstart + s(i)*zend+0.02*sin(pi*s(i)); % Points in z
                 elseif self.robot.mode ==4
-                x(3,i) = (1-s(i))*zstart + s(i)*zend+0.2*sin(pi*s(i)); % Points in z
+                    x(3,i) = (1-s(i))*zstart + s(i)*zend+0.2*sin(pi*s(i)); % Points in z
                 else
-                x(3,i) = (1-s(i))*zstart + s(i)*zend; % Points in z
+                    x(3,i) = (1-s(i))*zstart + s(i)*zend; % Points in z
                 end
                 %Angles are assumed to have direct movement between start
                 %and end unless otherwise specified
@@ -294,7 +297,7 @@ classdef Spawn < handle
                     theta(2,i) = end_pitch;
                     theta(3,i) = end_yaw;
                 end
-   
+                
                 
             end
             %Calculations using above points, determining Q values that
@@ -364,7 +367,7 @@ classdef Spawn < handle
                     self.tray.tray.base = transl(self.tray_x, modified_y, self.tray_z);
                     animate(self.tray.tray,0);
                     self.tray_y = modified_y;
-
+                    
                     %Cake Movement Linked, activates at same time as tray
                     %thus updating to tray positional data
                     self.CakeLocationSpawn();
