@@ -225,7 +225,8 @@ classdef GP7 < handle
                     %Do nothing
                     %Problem where it cannot break from loop properly.
                     %Investigate further
-                    self.stop_status
+                    self.stop_status = 0;
+                    pause(0.1);
                 end
                 animate(self.model, qMatrix(i,:));
                 drawnow()
@@ -353,37 +354,7 @@ classdef GP7 < handle
             q = self.model.getpos();
             disp(q);
         end
-        
-        
-        
-        function PickUpFood(self, foodPosition)
-            self.foodPos = foodPosition;
-            %Movement calculations to location given. Need to make foodPos the correct
-            %data type,
-        end
-        
-        
-        function GripEffector(self, gripState)
-            %Gripper as is may only be a part of plotting function and is unlikely to
-            %act within gazebo.
-        end
-        
-        function PlaceOnTray(self, foodOccurance)
-            %Place on tray, have several locations depending on which instance of food
-            %it is, first, second, third etc
-        end
-        
-        
-        function OvenDoorInteract(self, doorState)
-            %Move from current location to oven door and change state. True if currently closed, false
-            %if currently open
-            
-        end
-        
-        function MoveTray(self)
-            %Move from current location to tray. Grip tray, move from tray location to
-            %oven (assuming open), ungrip tray. Use grip function from previous..
-        end
+
         function FreeMovement(self)
             % Lab 11 - Question 2 skeleton code
             

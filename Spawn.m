@@ -33,7 +33,7 @@ classdef Spawn < handle
             stop_status=0;
             self.previous_RPY = zeros(1,3);
             self.robot = GP7(false);
-            self.robot.model.base = transl(-0.25, 0.45, self.tableZ-0.2);
+            self.robot.model.base = transl(-0.25, 0.45, 0.58);
             self.CurrentQValues = zeros(1,6);
             self.workspace = [-1 1 -1 1 -0.3 1];
             %Tray location, decided previously
@@ -81,10 +81,10 @@ classdef Spawn < handle
                 ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
             hold on
             
-            self.cake_cache = self.cakeDrop('yellow');
-            self.bottle_cache = self.bottleDrop('yellow');
-            self.bottle_cache(1).bottle.base = self.bottle_location;
-            animate(self.bottle_cache(1).bottle,0);
+            %self.cake_cache = self.cakeDrop('yellow');
+            %self.bottle_cache = self.bottleDrop('yellow');
+            %self.bottle_cache(1).bottle.base = self.bottle_location;
+            %animate(self.bottle_cache(1).bottle,0);
             
             set(gca, 'CameraPosition', [-700 3000 1000]);
             
@@ -98,10 +98,12 @@ classdef Spawn < handle
             for i = 1:12
                 if i == id
                     self.cakeArray(1,id) = 1;
+                    %if id == 0
+                    %   self.cakeArray(1,id) = 0; 
+                    %end
                 end
-                
             end
-            
+          
         end
         
         function origin_spawn = cakeDrop(self, colour)
@@ -121,60 +123,62 @@ classdef Spawn < handle
             %self.Cake_Locations(1,:) = self.tray_x, self.tray_y, self.tray_z
             
             self.Cake_Locations= [
-                %Middle Row
-                ;self.tray_x,     self.tray_y+0.04,    self.tray_z-0.04...            %11   Really 1
-                ;self.tray_x,     self.tray_y+0.13,    self.tray_z-0.04...       %8    Really 2
-                ;self.tray_x,     self.tray_y-0.04,    self.tray_z-0.04...       %5   Really 3
-                ;self.tray_x,     self.tray_y-0.13,    self.tray_z-0.04...       %2   Really 4
-                %Left Row
-                ;self.tray_x-0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %12   Really5
-                ;self.tray_x-0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %9   Really6
-                ;self.tray_x-0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %6   Really7
-                ;self.tray_x-0.085,     self.tray_y-0.13,    self.tray_z-0.04...  %3   Really8
-                %Right Row
-                ;self.tray_x+0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %7   Really9
-                ;self.tray_x+0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %10   Really10
-                ;self.tray_x+0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %4   Really11
-                ;self.tray_x+0.085,     self.tray_y-0.13,    self.tray_z-0.04];   %1   Really12
+            %Top of Tray
+            ;self.tray_x+0.085,     self.tray_y-0.13,    self.tray_z-0.04...   %1
+            ;self.tray_x,           self.tray_y-0.13,    self.tray_z-0.04...  %2
+            ;self.tray_x-0.085,     self.tray_y-0.13,    self.tray_z-0.04...  %3
+            %Middle Upper of Tray
+            ;self.tray_x+0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %4
+            ;self.tray_x,           self.tray_y-0.04,    self.tray_z-0.04...  %5
+            ;self.tray_x-0.085,     self.tray_y-0.04,    self.tray_z-0.04...  %6
+            %Middle Down of Tray
+            ;self.tray_x+0.085,     self.tray_y+0.04,    self.tray_z-0.04...  %7
+            ;self.tray_x,           self.tray_y+0.13,    self.tray_z-0.04...  %8
+            ;self.tray_x-0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %9
+            %Bottom of Tray
+            ;self.tray_x+0.085,     self.tray_y+0.13,    self.tray_z-0.04...  %10
+            ;self.tray_x,           self.tray_y+0.04,    self.tray_z-0.04...  %11
+            ;self.tray_x-0.085,     self.tray_y+0.04,    self.tray_z-0.04]  %12
             
-            for i = 1:12
-                if 1==self.cakeArray(1,i)
-                    cakePlace(:,:,i) = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
-                    cake_placement = transl(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i));
-                    
-                    self.cake_cache(i).cake.base = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
-                    %self.cake_cache.i.cake.base = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
-                    %self.cake_cache(i) = Cake(num2str(i),cake_placement,self.workspace);
-                    
-                    %RMRC for location
-                    if self.robot.mode == 3
-                        self.SpawnRMRCPoint(cakePlace(1,4,i),cakePlace(2,4,i)+0.2,cakePlace(3,4,i)+0.2, -pi/2, 0, pi/2, 1.5);
-                        pause(1);
-                    end
-                    
-                    animate(self.cake_cache(i).cake,0);
-                    %Cake(num2str(i),cake_placement,self.workspace);
-                    
+        
+        for i = 1:12
+            if 1==self.cakeArray(1,i)
+                cakePlace(:,:,i) = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
+                cake_placement = transl(cakePlace(1,4,i),cakePlace(2,4,i),cakePlace(3,4,i));
+                
+                self.cake_cache(i).cake.base = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
+                %self.cake_cache.i.cake.base = transl(self.Cake_Locations(i,1),self.Cake_Locations(i,2),self.Cake_Locations(i,3));
+                %self.cake_cache(i) = Cake(num2str(i),cake_placement,self.workspace);
+                
+                %RMRC for location
+                if self.robot.mode == 3
+                    self.SpawnRMRCPoint(cakePlace(1,4,i),cakePlace(2,4,i)+0.2,cakePlace(3,4,i)+0.3, -pi/2, 0, pi/2, 1.5);
+                    pause(1);
                 end
-                %set(gca, 'CameraPosition', [-700 3000 1000]);
+                
+                animate(self.cake_cache(i).cake,0);
+                %Cake(num2str(i),cake_placement,self.workspace);
                 
             end
-            
-            
+            %set(gca, 'CameraPosition', [-700 3000 1000]);
             
         end
-        %Nathan Help
+        
+        
+        
+        end
         function RobotPoseAnimate(self,q)
             self.CurrentQValues = q;
             self.robot.model.animate(q);
             drawnow();
         end
-        function stopChange(self, state)
-            if state == 1
-                self.stop_status = 1;
-            else
-                self.stop_status = 0;
+        function eStop(self)
+            while self.stop_status == 1
+                pause(0.1);
             end
+        end
+        function eStopResume(self)
+            self.stop_status = 0;
         end
         
         
@@ -185,12 +189,12 @@ classdef Spawn < handle
                 self.cake_cache = self.cakeDrop('yellow');
             end
             if contains('red', colour)
-                self.bottle_cache = self.bottleDrop('yellow');
+                self.bottle_cache = self.bottleDrop('red');
                 self.cake_cache = self.cakeDrop('red');
-            fprintf('Colour Choice Red Specifically');
+                fprintf('Colour Choice Red Specifically');
             end
             if contains('blue', colour)
-                self.bottle_cache = self.bottleDrop('yellow');
+                self.bottle_cache = self.bottleDrop('blue');
                 self.cake_cache = self.cakeDrop('blue');
             end
             self.bottle_cache(1).bottle.base = self.bottle_location;
@@ -203,7 +207,7 @@ classdef Spawn < handle
         function SpawnRMRCPoint(self, xend, yend, zend, end_roll, end_pitch, end_yaw, t)
             %function Lab9Solution_Question1(self, xstart, ystart, zstart, xend, yend, zend)
             %q = self.model.getpos();
-            q_start = self.robot.model.getpos()
+            q_start = self.robot.model.getpos();
             Transform = self.robot.model.fkine(q_start);
             xstart = Transform(1,4);
             ystart = Transform(2,4);
@@ -309,17 +313,9 @@ classdef Spawn < handle
                 qMatrix(i+1,:) = qMatrix(i,:) + deltaT*qdot(i,:);                         	% Update next joint state based on joint velocities
                 positionError(:,i) = x(:,i+1) - T(1:3,4);                               % For plotting
             end
-            qMatrix(:,:)
             for i=1:steps
-                while self.robot.stop_status ==1
-                    %Do nothing
-                    %Problem where it cannot break from loop properly.
-                    %Investigate further
-                    self.robot.stop_status;
-                    pause(0.5);
-                end
                 
-                
+                self.eStop();
                 
                 %fprintf('Animate %d Number \n,i');
                 animate(self.robot.model, qMatrix(i,:));
@@ -337,10 +333,10 @@ classdef Spawn < handle
                 if self.robot.mode==4
                     A=self.robot.model.fkine(qMatrix(i,:));
                     self.tray_x = A(1,4);
-                    self.tray_y = A(2,4);
+                    self.tray_y = (A(2,4)-0.2);
                     self.tray_z = A(3,4);
                     tray_location = transl(self.tray_x, self.tray_y, self.tray_z);
-                    self.tray.tray.base = transl(self.tray_x, (self.tray_y-0.2), self.tray_z);
+                    self.tray.tray.base = transl(self.tray_x, self.tray_y, self.tray_z);
                     animate(self.tray.tray,0);
                     %Insert tray movement. Might need to be implemented in
                     %Spawn instead
