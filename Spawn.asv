@@ -261,7 +261,7 @@ classdef Spawn < handle
                 if self.robot.mode ==1
                 x(3,i) = (1-s(i))*zstart + s(i)*zend+0.2*sin(pi*s(i)); % Points in z
                 elseif self.robot.mode ==2
-                x(3,i) = (1-s(i))*zstart + s(i)*zend+0.02*sin(pi*s(i)); % Points in z
+                x(3,i) = (1-s(i))*zstart + s(i)*zend+0.025sin(pi*s(i)); % Points in z
                 elseif self.robot.mode ==4
                 x(3,i) = (1-s(i))*zstart + s(i)*zend+0.2*sin(pi*s(i)); % Points in z
                 else
