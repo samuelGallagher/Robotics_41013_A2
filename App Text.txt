@@ -1,0 +1,835 @@
+classdef oven_interface < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                    matlab.ui.Figure
+        Slot1CheckBox               matlab.ui.control.CheckBox
+        Slot2CheckBox               matlab.ui.control.CheckBox
+        Slot3CheckBox               matlab.ui.control.CheckBox
+        Slot4CheckBox               matlab.ui.control.CheckBox
+        Slot5CheckBox               matlab.ui.control.CheckBox
+        Slot6CheckBox               matlab.ui.control.CheckBox
+        Slot7CheckBox               matlab.ui.control.CheckBox
+        Slot8CheckBox               matlab.ui.control.CheckBox
+        Slot9CheckBox               matlab.ui.control.CheckBox
+        Slot10CheckBox              matlab.ui.control.CheckBox
+        Slot11CheckBox              matlab.ui.control.CheckBox
+        Slot12CheckBox              matlab.ui.control.CheckBox
+        CupcakeColourDropDownLabel  matlab.ui.control.Label
+        CupcakeColourDropDown       matlab.ui.control.DropDown
+        OvenAssitaBotLabel          matlab.ui.control.Label
+        Joint1SliderLabel           matlab.ui.control.Label
+        Joint1Slider                matlab.ui.control.Slider
+        Joint2SliderLabel           matlab.ui.control.Label
+        Joint2Slider                matlab.ui.control.Slider
+        Joint3SliderLabel           matlab.ui.control.Label
+        Joint3Slider                matlab.ui.control.Slider
+        Joint4SliderLabel           matlab.ui.control.Label
+        Joint4Slider                matlab.ui.control.Slider
+        Joint5SliderLabel           matlab.ui.control.Label
+        Joint5Slider                matlab.ui.control.Slider
+        Joint6SliderLabel           matlab.ui.control.Label
+        Joint6Slider                matlab.ui.control.Slider
+        JointMovementLabel          matlab.ui.control.Label
+        EndEffectorControlLabel     matlab.ui.control.Label
+        XEditFieldLabel             matlab.ui.control.Label
+        XEditField                  matlab.ui.control.NumericEditField
+        YEditFieldLabel             matlab.ui.control.Label
+        YEditField                  matlab.ui.control.NumericEditField
+        ZEditFieldLabel             matlab.ui.control.Label
+        ZEditField                  matlab.ui.control.NumericEditField
+        UpdateJointsButton          matlab.ui.control.Button
+        UpdatePositionButton        matlab.ui.control.Button
+        CupcakePrepLabel            matlab.ui.control.Label
+        Label                       matlab.ui.control.Label
+        STARTButton                 matlab.ui.control.Button
+        ESTOPButton                 matlab.ui.control.Button
+        JoystickControlButton       matlab.ui.control.Button
+        EResumeButton               matlab.ui.control.Button
+        SetBatterButton             matlab.ui.control.Button
+        LightCurtainOnButton        matlab.ui.control.Button
+        SafetyDemoButton            matlab.ui.control.Button
+    end
+
+    
+    properties (Access = private)
+        control; % Description
+        q_joint_slider = [0 0 0 0 0 0];
+        x_goal;
+        y_goal;
+        z_goal;
+        roll_goal;
+        pitch_goal;
+        yaw_goal;
+    end
+    
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Code that executes after component creation
+        function startupFcn(app)
+            %clear all
+            %close all
+            %clc
+            app.control = Spawn;
+
+            
+        end
+
+        % Button pushed function: STARTButton
+        function StartEvent(app, event)
+            
+            
+            %Cycle through scene of
+            %1. Opening Door
+            %2. Picking up Bottle
+            %3. Populating Cupcakes
+            %4. Remounting Bottle
+            %5. Moving Tray into Oven
+            %6. Closing Tray
+            
+            app.control.robot.stop_status = 0;
+            app.control.robot.returnRobotJoints();
+            %app.control.SpawnRMRCPoint(0.04,0.68,0.68, 0, 0, 0, 0);
+            % No Movement Tied
+            app.control.robot.mode=1;
+            %Move to Oven Door
+            fprintf('Move To Oven \n');
+            app.control.SpawnRMRCPoint(-0.1,0.7,0.68, 0, -pi/2, pi/2, 5);
+            pause(2);
+            %Door Movement Tied
+            app.control.robot.mode = 2;
+            %Open Oven
+            fprintf('Moving Oven \n');
+            app.control.SpawnRMRCPoint(-0.1,1.02,0.47, -pi/4, -pi/2, pi/2, 5);
+            pause(2);
+            %No Movement Tied
+            app.control.robot.mode = 1;
+            fprintf('Move To Bottle \n');
+            app.control.SpawnRMRCPoint(app.control.bottle_x,app.control.bottle_y+0.4,app.control.bottle_z, -pi/2, 0, pi/2, 5);
+            pause(1);
+            app.control.robot.mode=8;
+            app.control.SpawnRMRCPoint(app.control.bottle_x,app.control.bottle_y+0.2,app.control.bottle_z, -pi/2, 0, pi/2, 2);
+            %Bottle Movement Tied
+            %Function for each cake movement and pause
+            pause(2);
+            app.control.robot.mode=3;
+            fprintf('Take Bottle Out');
+            app.control.SpawnRMRCPoint(app.control.tray_x,app.control.tray_y,app.control.bottle_z, -pi/2, 0, pi/2, 2)
+            app.control.CakeLocationSpawn();
+            fprintf('Return Bottle Location\n');
+            app.control.SpawnRMRCPoint(app.control.bottle_x,app.control.bottle_y+0.2,app.control.bottle_z, -pi/2, 0, pi/2, 5);
+            %No Movement Tied
+            app.control.robot.mode=8;
+            app.control.SpawnRMRCPoint(app.control.bottle_x,app.control.bottle_y+0.4,app.control.bottle_z, -pi/2, 0, pi/2, 2);
+            pause(2);
+            app.control.robot.mode=1;
+            %Move Slightly out to avoid collision
+            app.control.SpawnRMRCPoint(app.control.bottle_x,app.control.bottle_y+0.4,app.control.bottle_z, -pi/2, 0, pi/2, 5);
+            fprintf('Move to Tray \n');
+            app.control.SpawnRMRCPoint(app.control.tray_x,app.control.tray_y+0.3,app.control.tray_z, -pi/2, 0, pi, 5);
+            % Tray movement tied
+            pause(2);
+            app.control.robot.mode=4;
+            fprintf('Move Tray to Oven \n');
+            app.control.SpawnRMRCPoint(0.25,0.75,0.55, -pi/2, 0, pi, 5);
+            pause(2);
+            %No Movement Tied
+            app.control.robot.mode =1;
+            %Move To Door New
+            fprintf('Move To Oven \n');
+            app.control.SpawnRMRCPoint(-0.15,1.02,0.47, 0, -pi/2, pi/2, 5);
+            %Door Movement Tied
+            app.control.robot.mode = 7;
+            %Move Door
+            fprintf('Moving Oven \n');
+            app.control.SpawnRMRCPoint(-0.1,0.68,0.68, 0, -pi/2, pi/2, 5);
+            %End
+        end
+
+        % Button pushed function: ESTOPButton
+        function EmergencyStop(app, event)
+            app.control.stop_status = 1;
+            fprintf('Stopping \n');
+            %app.control.eStop();
+            %Make a certain value a certain thing
+            
+        end
+
+        % Value changed function: Slot1CheckBox
+        function CakeSlot1(app, event)
+            value = app.Slot1CheckBox.Value;
+            app.control.CakeSlotChoice(1,value);
+            
+        end
+
+        % Value changed function: Slot2CheckBox
+        function CakeSlot2(app, event)
+            value = app.Slot2CheckBox.Value;
+            app.control.CakeSlotChoice(2,value);
+            
+        end
+
+        % Value changed function: Slot3CheckBox
+        function CakeSlot3(app, event)
+            value = app.Slot3CheckBox.Value;
+            app.control.CakeSlotChoice(3,value);
+            
+        end
+
+        % Value changed function: Slot4CheckBox
+        function CakeSlot4(app, event)
+            value = app.Slot4CheckBox.Value;
+            app.control.CakeSlotChoice(4,value);
+            
+        end
+
+        % Value changed function: Slot5CheckBox
+        function CakeSlot5(app, event)
+            value = app.Slot5CheckBox.Value;
+            app.control.CakeSlotChoice(5,value);
+            
+        end
+
+        % Value changed function: Slot6CheckBox
+        function CakeSlot6(app, event)
+            value = app.Slot6CheckBox.Value;
+            app.control.CakeSlotChoice(6,value);
+            
+        end
+
+        % Value changed function: Slot7CheckBox
+        function CakeSlot7(app, event)
+            value = app.Slot7CheckBox.Value;
+            app.control.CakeSlotChoice(7,value);
+            
+        end
+
+        % Value changed function: Slot8CheckBox
+        function CakeSlot8(app, event)
+            value = app.Slot8CheckBox.Value;
+            app.control.CakeSlotChoice(8,value);
+            value
+        end
+
+        % Value changed function: Slot9CheckBox
+        function CakeSlot9(app, event)
+            value = app.Slot9CheckBox.Value;
+            app.control.CakeSlotChoice(9,value);
+            
+        end
+
+        % Value changed function: Slot10CheckBox
+        function CakeSlot10(app, event)
+            value = app.Slot10CheckBox.Value;
+            app.control.CakeSlotChoice(10,value);
+            
+        end
+
+        % Value changed function: Slot11CheckBox
+        function CakeSlot11(app, event)
+            value = app.Slot11CheckBox.Value;
+            app.control.CakeSlotChoice(11,value);
+            
+        end
+
+        % Value changed function: Slot12CheckBox
+        function CakeSlot12(app, event)
+            value = app.Slot12CheckBox.Value;
+            app.control.CakeSlotChoice(12,value);
+            
+        end
+
+        % Value changed function: CupcakeColourDropDown
+        function ColourChoice(app, event)
+            value = app.CupcakeColourDropDown.Value;
+        end
+
+        % Callback function
+        function UpdateJoint0(app, event)
+            value = app.Joint0Slider.deg2rad(value);
+            %N/A
+        end
+
+        % Value changed function: Joint1Slider
+        function UpdateJoint1(app, event)
+            value = app.Joint1Slider.Value;
+            app.q_joint_slider(1,1)=deg2rad(value);
+            %Make the value signify a q plan in the first point, using 6
+            %points in total through the 6 sliders
+        end
+
+        % Value changed function: Joint2Slider
+        function UpdateJoint2(app, event)
+            value = app.Joint2Slider.Value;
+            app.q_joint_slider(1,2)=deg2rad(value);
+        end
+
+        % Value changed function: Joint3Slider
+        function UpdateJoint3(app, event)
+            value = app.Joint3Slider.Value;
+           app.q_joint_slider(1,3)=deg2rad(value);
+            
+        end
+
+        % Value changed function: Joint4Slider
+        function UpdateJoint4(app, event)
+            value = app.Joint4Slider.Value;
+            app.q_joint_slider(1,4)=deg2rad(value);
+        end
+
+        % Value changed function: Joint5Slider
+        function UpdateJoint5(app, event)
+            value = app.Joint5Slider.Value;
+            app.q_joint_slider(1,5)=deg2rad(value);
+            
+        end
+
+        % Value changed function: Joint6Slider
+        function UpdateJoint6(app, event)
+            value = app.Joint6Slider.Value;
+            app.q_joint_slider(1,6)=deg2rad(value);
+            
+        end
+
+        % Button pushed function: UpdateJointsButton
+        function JointImplementUpdates(app, event)
+            q_value = app.q_joint_slider
+            app.control.RobotPoseAnimate(q_value);
+            %app.control.robot.RMRC(q_value);
+            
+            T = app.control.robot.model.fkine(q_value);
+            app.XEditField.Value = T(1,4);
+            app.YEditField.Value = T(2,4);
+            app.ZEditField.Value = T(3,4);
+            eulZYX = rotm2eul(tform2rotm(T));
+            %app.RollEditField = eulZYX(1,1);
+            %app.PitchEditField = eulZYX(1,2);
+            %app.YawEditField = eulZYX(1,3);
+
+        end
+
+        % Value changed function: XEditField
+        function EndEffectorXAim(app, event)
+            value = app.XEditField.Value;
+            app.x_goal = value;
+        end
+
+        % Value changed function: YEditField
+        function EndEffectorYAim(app, event)
+            value = app.YEditField.Value;
+            app.y_goal = value;
+        end
+
+        % Value changed function: ZEditField
+        function EndEffectorZAim(app, event)
+            value = app.ZEditField.Value;
+            app.z_goal = value;
+        end
+
+        % Button pushed function: JoystickControlButton
+        function JoyConControl(app, event)
+            %Activate content similar to Lab week 11
+            app.control.robot.FreeMovement();
+        end
+
+        % Button pushed function: EResumeButton
+        function EResumeButtonPushed(app, event)
+            app.control.eStopResume()
+            %app.control.SpawnRMRCPoint(app.control.tray_x,app.control.tray_y+0.55,app.control.tableZ+0.05, -pi/2, 0, 0, 5);
+
+            fprintf('Resume Button Activate \n');
+            
+        end
+
+        % Button pushed function: UpdatePositionButton
+        function UpdatePositionButtonPushed(app, event)
+            %use app.xyz_goal to get a q value
+            %Then call app.control.robot.RMRC(q);
+            app.control.SpawnRMRCPoint(app.x_goal, app.y_goal, app.z_goal, 0, 0, 0, 4);
+            
+            %Alternatively derive q joints from these values
+        end
+
+        % Callback function
+        function Joint7SliderValueChanged(app, event)
+            value = app.Joint7Slider.Value;
+            app.q_joint_slider(1,7)=deg2rad(value);
+
+        end
+
+        % Callback function
+        function RollEditFieldValueChanged(app, event)
+            value = app.RollEditField.Value;
+            app.roll_goal = value;
+        end
+
+        % Callback function
+        function PitchEditFieldValueChanged(app, event)
+            value = app.PitchEditField.Value;
+            app.pitch_goal = value;
+        end
+
+        % Callback function
+        function YawEditFieldValueChanged(app, event)
+            value = app.YawEditField.Value;
+            app.yaw_goal = value;
+        end
+
+        % Button pushed function: SetBatterButton
+        function SetBatterButtonPushed(app, event)
+            value = app.CupcakeColourDropDown.Value;
+            if (strcmp(app.CupcakeColourDropDown.Value, 'Yellow'))
+                app.control.ColourChoice('yellow');
+            end
+            if (strcmp(app.CupcakeColourDropDown.Value, 'Red'))
+                app.control.ColourChoice('red');
+            end
+            if (strcmp(app.CupcakeColourDropDown.Value, 'Blue'))
+                app.control.ColourChoice('blue');
+            end
+            fprintf('Event');
+            %if yellow 1, if blue 2, if green 3 etc
+            %control.PaperColourChoice(colour);
+        end
+
+        % Button pushed function: LightCurtainOnButton
+        function LightCurtainOnButtonPushed(app, event)
+            %Put Light Curtain In
+            %% Light Curtain
+            planeXntersect1 = 1.3;
+            planeBounds = [planeXntersect1-eps,planeXntersect1+eps,0,1.4,0,1.5];
+            [Y,Z] = meshgrid(planeBounds(3):0.1:planeBounds(4),planeBounds(5):0.1:planeBounds(6));
+            X = repmat(planeXntersect1,size(Y,1),size(Y,2));
+            s = meshz(X,Y,Z,'FaceAlpha',0.3);
+            
+            planeXntersect2 = -2.6;
+            planeBounds = [planeXntersect2-eps,planeXntersect2+eps,0,1.4,0,1.5];
+            [Y,Z] = meshgrid(planeBounds(3):0.1:planeBounds(4),planeBounds(5):0.1:planeBounds(6));
+            X = repmat(planeXntersect2,size(Y,1),size(Y,2));
+            s = meshz(X,Y,Z,'FaceAlpha',0.3)
+            
+            planeXntersect = 1.4;
+            planeBounds = [planeXntersect-eps,planeXntersect+eps,-2.6,1.3,0,1.5];
+            [X,Z] = meshgrid(planeBounds(3):0.1:planeBounds(4),planeBounds(5):0.1:planeBounds(6));
+            Y = repmat(planeXntersect,size(X,1),size(X,2));
+            s = meshz(X,Y,Z,'FaceAlpha',0.3)
+        end
+
+        % Button pushed function: SafetyDemoButton
+        function SafetyDemoButtonPushed(app, event)
+            [f,v,data] = plyread('Scotty.ply','tri');
+            ScottyVertexCount = size(v,1);
+            
+            % Move center point to origin
+            midPoint = sum(v)/ScottyVertexCount;
+            ScottyVerts = v - repmat(midPoint,ScottyVertexCount,1);
+            
+            % Create a transform to describe the location (at the origin, since it's centered
+            ScottyPose = transl(0,2,0.5);
+            vertexColours = [data.vertex.red, data.vertex.green, data.vertex.blue] / 255;
+            
+            % Then plot the trisurf
+            ScottyMesh_h = trisurf(f,ScottyVerts(:,1),ScottyVerts(:,2), ScottyVerts(:,3) ...
+                ,'FaceVertexCData',vertexColours,'EdgeColor','interp','EdgeLighting','flat');
+            
+            % Move forwards (facing in -y direction)
+            forwardTR = makehgtform('translate',[0,-0.01,0]);
+            ScottyPose = ScottyPose * forwardTR
+            updatedPoints = [ScottyPose * [ScottyVerts,ones(ScottyVertexCount,1)]']';
+            
+            % Now update the Vertices
+            ScottyMesh_h.Vertices = updatedPoints(:,1:3)
+            
+            % Now move it many times
+            while 1
+                pose1 = transl(0, 1.5,0.85);
+                steps = 75;
+                gripperInitial = zeros(1,6);
+                variable = app.control.robot.model.ikcon(pose1);
+                gripperInitial = [gripperInitial;variable];
+                gp7qmatrix = jtraj(gripperInitial(1,:),gripperInitial(2,:),steps);
+                
+                for i=1:steps
+                    animate(app.control.robot.model, gp7qmatrix(i,:));
+                    drawnow();
+                    ScottyPose = ScottyPose * forwardTR
+                    updatedPoints = [ScottyPose * [ScottyVerts,ones(ScottyVertexCount,1)]']';
+                    % Update the mesh vertices in the patch handle
+                    ScottyMesh_h.Vertices = updatedPoints(:,1:3);
+                    
+                    if ScottyPose(2,4) <= 1.6;
+                        disp('WatchOut!')
+                        return
+                    end
+                    
+                    
+                    drawnow();
+                end
+                drawnow;
+            end
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Position = [100 100 736 675];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create Slot1CheckBox
+            app.Slot1CheckBox = uicheckbox(app.UIFigure);
+            app.Slot1CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot1, true);
+            app.Slot1CheckBox.Text = 'Slot 1';
+            app.Slot1CheckBox.Position = [478 478 53 22];
+
+            % Create Slot2CheckBox
+            app.Slot2CheckBox = uicheckbox(app.UIFigure);
+            app.Slot2CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot2, true);
+            app.Slot2CheckBox.Text = 'Slot 2';
+            app.Slot2CheckBox.Position = [565 478 53 22];
+
+            % Create Slot3CheckBox
+            app.Slot3CheckBox = uicheckbox(app.UIFigure);
+            app.Slot3CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot3, true);
+            app.Slot3CheckBox.Text = 'Slot 3';
+            app.Slot3CheckBox.Position = [643 478 53 22];
+
+            % Create Slot4CheckBox
+            app.Slot4CheckBox = uicheckbox(app.UIFigure);
+            app.Slot4CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot4, true);
+            app.Slot4CheckBox.Text = 'Slot 4';
+            app.Slot4CheckBox.Position = [478 441 53 22];
+
+            % Create Slot5CheckBox
+            app.Slot5CheckBox = uicheckbox(app.UIFigure);
+            app.Slot5CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot5, true);
+            app.Slot5CheckBox.Text = 'Slot 5';
+            app.Slot5CheckBox.Position = [565 441 53 22];
+
+            % Create Slot6CheckBox
+            app.Slot6CheckBox = uicheckbox(app.UIFigure);
+            app.Slot6CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot6, true);
+            app.Slot6CheckBox.Text = 'Slot 6';
+            app.Slot6CheckBox.Position = [643 441 53 22];
+
+            % Create Slot7CheckBox
+            app.Slot7CheckBox = uicheckbox(app.UIFigure);
+            app.Slot7CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot7, true);
+            app.Slot7CheckBox.Text = 'Slot 7';
+            app.Slot7CheckBox.Position = [478 404 53 22];
+
+            % Create Slot8CheckBox
+            app.Slot8CheckBox = uicheckbox(app.UIFigure);
+            app.Slot8CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot8, true);
+            app.Slot8CheckBox.Text = 'Slot 8';
+            app.Slot8CheckBox.Position = [565 404 53 22];
+
+            % Create Slot9CheckBox
+            app.Slot9CheckBox = uicheckbox(app.UIFigure);
+            app.Slot9CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot9, true);
+            app.Slot9CheckBox.Text = 'Slot 9';
+            app.Slot9CheckBox.Position = [643 404 53 22];
+
+            % Create Slot10CheckBox
+            app.Slot10CheckBox = uicheckbox(app.UIFigure);
+            app.Slot10CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot10, true);
+            app.Slot10CheckBox.Text = 'Slot 10';
+            app.Slot10CheckBox.Position = [478 369 59 22];
+
+            % Create Slot11CheckBox
+            app.Slot11CheckBox = uicheckbox(app.UIFigure);
+            app.Slot11CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot11, true);
+            app.Slot11CheckBox.Text = 'Slot 11';
+            app.Slot11CheckBox.Position = [565 369 58 22];
+
+            % Create Slot12CheckBox
+            app.Slot12CheckBox = uicheckbox(app.UIFigure);
+            app.Slot12CheckBox.ValueChangedFcn = createCallbackFcn(app, @CakeSlot12, true);
+            app.Slot12CheckBox.Text = 'Slot 12';
+            app.Slot12CheckBox.Position = [643 369 59 22];
+
+            % Create CupcakeColourDropDownLabel
+            app.CupcakeColourDropDownLabel = uilabel(app.UIFigure);
+            app.CupcakeColourDropDownLabel.BackgroundColor = [0.9294 0.6941 0.1255];
+            app.CupcakeColourDropDownLabel.HorizontalAlignment = 'center';
+            app.CupcakeColourDropDownLabel.FontWeight = 'bold';
+            app.CupcakeColourDropDownLabel.Position = [465 332 100 22];
+            app.CupcakeColourDropDownLabel.Text = 'Cupcake Colour';
+
+            % Create CupcakeColourDropDown
+            app.CupcakeColourDropDown = uidropdown(app.UIFigure);
+            app.CupcakeColourDropDown.Items = {'Yellow', 'Red', 'Blue'};
+            app.CupcakeColourDropDown.ValueChangedFcn = createCallbackFcn(app, @ColourChoice, true);
+            app.CupcakeColourDropDown.FontWeight = 'bold';
+            app.CupcakeColourDropDown.BackgroundColor = [0.9294 0.6941 0.1255];
+            app.CupcakeColourDropDown.Position = [579 332 73 22];
+            app.CupcakeColourDropDown.Value = 'Yellow';
+
+            % Create OvenAssitaBotLabel
+            app.OvenAssitaBotLabel = uilabel(app.UIFigure);
+            app.OvenAssitaBotLabel.BackgroundColor = [0.502 0.502 0.502];
+            app.OvenAssitaBotLabel.HorizontalAlignment = 'center';
+            app.OvenAssitaBotLabel.FontSize = 22;
+            app.OvenAssitaBotLabel.FontWeight = 'bold';
+            app.OvenAssitaBotLabel.Position = [1 576 736 100];
+            app.OvenAssitaBotLabel.Text = 'Oven Assita-Bot';
+
+            % Create Joint1SliderLabel
+            app.Joint1SliderLabel = uilabel(app.UIFigure);
+            app.Joint1SliderLabel.HorizontalAlignment = 'right';
+            app.Joint1SliderLabel.Position = [27 488 41 22];
+            app.Joint1SliderLabel.Text = 'Joint 1';
+
+            % Create Joint1Slider
+            app.Joint1Slider = uislider(app.UIFigure);
+            app.Joint1Slider.Limits = [-170 170];
+            app.Joint1Slider.ValueChangedFcn = createCallbackFcn(app, @UpdateJoint1, true);
+            app.Joint1Slider.Position = [89 497 150 3];
+
+            % Create Joint2SliderLabel
+            app.Joint2SliderLabel = uilabel(app.UIFigure);
+            app.Joint2SliderLabel.HorizontalAlignment = 'right';
+            app.Joint2SliderLabel.Position = [30 422 41 22];
+            app.Joint2SliderLabel.Text = 'Joint 2';
+
+            % Create Joint2Slider
+            app.Joint2Slider = uislider(app.UIFigure);
+            app.Joint2Slider.Limits = [-65 145];
+            app.Joint2Slider.MajorTicks = [-65 -35 0 25 55 85 115 145];
+            app.Joint2Slider.ValueChangedFcn = createCallbackFcn(app, @UpdateJoint2, true);
+            app.Joint2Slider.Position = [92 431 150 3];
+
+            % Create Joint3SliderLabel
+            app.Joint3SliderLabel = uilabel(app.UIFigure);
+            app.Joint3SliderLabel.HorizontalAlignment = 'right';
+            app.Joint3SliderLabel.Position = [27 366 41 22];
+            app.Joint3SliderLabel.Text = 'Joint 3';
+
+            % Create Joint3Slider
+            app.Joint3Slider = uislider(app.UIFigure);
+            app.Joint3Slider.Limits = [-70 190];
+            app.Joint3Slider.MajorTicks = [-70 -18 0 34 86 138 190];
+            app.Joint3Slider.ValueChangedFcn = createCallbackFcn(app, @UpdateJoint3, true);
+            app.Joint3Slider.Position = [89 375 150 3];
+
+            % Create Joint4SliderLabel
+            app.Joint4SliderLabel = uilabel(app.UIFigure);
+            app.Joint4SliderLabel.HorizontalAlignment = 'right';
+            app.Joint4SliderLabel.Position = [28 309 41 22];
+            app.Joint4SliderLabel.Text = 'Joint 4';
+
+            % Create Joint4Slider
+            app.Joint4Slider = uislider(app.UIFigure);
+            app.Joint4Slider.Limits = [-190 190];
+            app.Joint4Slider.MajorTicks = [-190 -114 -38 0 38 114 190];
+            app.Joint4Slider.ValueChangedFcn = createCallbackFcn(app, @UpdateJoint4, true);
+            app.Joint4Slider.Position = [90 318 150 3];
+
+            % Create Joint5SliderLabel
+            app.Joint5SliderLabel = uilabel(app.UIFigure);
+            app.Joint5SliderLabel.HorizontalAlignment = 'right';
+            app.Joint5SliderLabel.Position = [28 252 41 22];
+            app.Joint5SliderLabel.Text = 'Joint 5';
+
+            % Create Joint5Slider
+            app.Joint5Slider = uislider(app.UIFigure);
+            app.Joint5Slider.Limits = [-135 135];
+            app.Joint5Slider.ValueChangedFcn = createCallbackFcn(app, @UpdateJoint5, true);
+            app.Joint5Slider.Position = [90 261 150 3];
+
+            % Create Joint6SliderLabel
+            app.Joint6SliderLabel = uilabel(app.UIFigure);
+            app.Joint6SliderLabel.HorizontalAlignment = 'right';
+            app.Joint6SliderLabel.Position = [29 189 41 22];
+            app.Joint6SliderLabel.Text = 'Joint 6';
+
+            % Create Joint6Slider
+            app.Joint6Slider = uislider(app.UIFigure);
+            app.Joint6Slider.Limits = [-360 360];
+            app.Joint6Slider.ValueChangedFcn = createCallbackFcn(app, @UpdateJoint6, true);
+            app.Joint6Slider.Position = [91 198 150 3];
+
+            % Create JointMovementLabel
+            app.JointMovementLabel = uilabel(app.UIFigure);
+            app.JointMovementLabel.BackgroundColor = [0.851 0.3255 0.098];
+            app.JointMovementLabel.HorizontalAlignment = 'center';
+            app.JointMovementLabel.FontSize = 16;
+            app.JointMovementLabel.FontWeight = 'bold';
+            app.JointMovementLabel.FontColor = [1 1 1];
+            app.JointMovementLabel.Position = [1 517 260 60];
+            app.JointMovementLabel.Text = 'Joint Movement';
+
+            % Create EndEffectorControlLabel
+            app.EndEffectorControlLabel = uilabel(app.UIFigure);
+            app.EndEffectorControlLabel.BackgroundColor = [0.4941 0.1843 0.5569];
+            app.EndEffectorControlLabel.HorizontalAlignment = 'center';
+            app.EndEffectorControlLabel.FontSize = 16;
+            app.EndEffectorControlLabel.FontWeight = 'bold';
+            app.EndEffectorControlLabel.FontColor = [1 1 1];
+            app.EndEffectorControlLabel.Position = [260 517 198 60];
+            app.EndEffectorControlLabel.Text = 'End Effector Control';
+
+            % Create XEditFieldLabel
+            app.XEditFieldLabel = uilabel(app.UIFigure);
+            app.XEditFieldLabel.HorizontalAlignment = 'right';
+            app.XEditFieldLabel.Position = [277 475 25 22];
+            app.XEditFieldLabel.Text = 'X';
+
+            % Create XEditField
+            app.XEditField = uieditfield(app.UIFigure, 'numeric');
+            app.XEditField.ValueChangedFcn = createCallbackFcn(app, @EndEffectorXAim, true);
+            app.XEditField.Position = [317 475 105 22];
+
+            % Create YEditFieldLabel
+            app.YEditFieldLabel = uilabel(app.UIFigure);
+            app.YEditFieldLabel.HorizontalAlignment = 'right';
+            app.YEditFieldLabel.Position = [277 433 25 22];
+            app.YEditFieldLabel.Text = 'Y';
+
+            % Create YEditField
+            app.YEditField = uieditfield(app.UIFigure, 'numeric');
+            app.YEditField.ValueChangedFcn = createCallbackFcn(app, @EndEffectorYAim, true);
+            app.YEditField.Position = [317 433 105 22];
+
+            % Create ZEditFieldLabel
+            app.ZEditFieldLabel = uilabel(app.UIFigure);
+            app.ZEditFieldLabel.HorizontalAlignment = 'right';
+            app.ZEditFieldLabel.Position = [277 390 25 22];
+            app.ZEditFieldLabel.Text = 'Z';
+
+            % Create ZEditField
+            app.ZEditField = uieditfield(app.UIFigure, 'numeric');
+            app.ZEditField.ValueChangedFcn = createCallbackFcn(app, @EndEffectorZAim, true);
+            app.ZEditField.Position = [317 390 105 22];
+
+            % Create UpdateJointsButton
+            app.UpdateJointsButton = uibutton(app.UIFigure, 'push');
+            app.UpdateJointsButton.ButtonPushedFcn = createCallbackFcn(app, @JointImplementUpdates, true);
+            app.UpdateJointsButton.BackgroundColor = [0.851 0.3255 0.098];
+            app.UpdateJointsButton.FontWeight = 'bold';
+            app.UpdateJointsButton.Position = [28 91 223 49];
+            app.UpdateJointsButton.Text = 'Update Joints';
+
+            % Create UpdatePositionButton
+            app.UpdatePositionButton = uibutton(app.UIFigure, 'push');
+            app.UpdatePositionButton.ButtonPushedFcn = createCallbackFcn(app, @UpdatePositionButtonPushed, true);
+            app.UpdatePositionButton.BackgroundColor = [0.4941 0.1843 0.5569];
+            app.UpdatePositionButton.FontWeight = 'bold';
+            app.UpdatePositionButton.Position = [301 310 129 47];
+            app.UpdatePositionButton.Text = 'Update Position';
+
+            % Create CupcakePrepLabel
+            app.CupcakePrepLabel = uilabel(app.UIFigure);
+            app.CupcakePrepLabel.BackgroundColor = [0.9294 0.6941 0.1255];
+            app.CupcakePrepLabel.HorizontalAlignment = 'center';
+            app.CupcakePrepLabel.FontSize = 16;
+            app.CupcakePrepLabel.FontWeight = 'bold';
+            app.CupcakePrepLabel.FontColor = [1 1 1];
+            app.CupcakePrepLabel.Position = [457 517 280 60];
+            app.CupcakePrepLabel.Text = 'Cupcake Prep';
+
+            % Create Label
+            app.Label = uilabel(app.UIFigure);
+            app.Label.BackgroundColor = [0.8 0.8 0.8];
+            app.Label.Position = [277 1 460 298];
+            app.Label.Text = '';
+
+            % Create STARTButton
+            app.STARTButton = uibutton(app.UIFigure, 'push');
+            app.STARTButton.ButtonPushedFcn = createCallbackFcn(app, @StartEvent, true);
+            app.STARTButton.BackgroundColor = [0 1 0];
+            app.STARTButton.FontSize = 18;
+            app.STARTButton.FontWeight = 'bold';
+            app.STARTButton.Position = [429 10 128 130];
+            app.STARTButton.Text = 'START';
+
+            % Create ESTOPButton
+            app.ESTOPButton = uibutton(app.UIFigure, 'push');
+            app.ESTOPButton.ButtonPushedFcn = createCallbackFcn(app, @EmergencyStop, true);
+            app.ESTOPButton.BackgroundColor = [1 0 0];
+            app.ESTOPButton.FontSize = 18;
+            app.ESTOPButton.FontWeight = 'bold';
+            app.ESTOPButton.Position = [579 10 151 130];
+            app.ESTOPButton.Text = 'E-STOP';
+
+            % Create JoystickControlButton
+            app.JoystickControlButton = uibutton(app.UIFigure, 'push');
+            app.JoystickControlButton.ButtonPushedFcn = createCallbackFcn(app, @JoyConControl, true);
+            app.JoystickControlButton.BackgroundColor = [0.4667 0.6745 0.1882];
+            app.JoystickControlButton.FontSize = 18;
+            app.JoystickControlButton.FontWeight = 'bold';
+            app.JoystickControlButton.Position = [287 158 117 131];
+            app.JoystickControlButton.Text = {'Joystick'; ' Control'};
+
+            % Create EResumeButton
+            app.EResumeButton = uibutton(app.UIFigure, 'push');
+            app.EResumeButton.ButtonPushedFcn = createCallbackFcn(app, @EResumeButtonPushed, true);
+            app.EResumeButton.BackgroundColor = [1 0.4118 0.1608];
+            app.EResumeButton.FontSize = 16;
+            app.EResumeButton.FontWeight = 'bold';
+            app.EResumeButton.Position = [287 10 117 130];
+            app.EResumeButton.Text = 'E-Resume';
+
+            % Create SetBatterButton
+            app.SetBatterButton = uibutton(app.UIFigure, 'push');
+            app.SetBatterButton.ButtonPushedFcn = createCallbackFcn(app, @SetBatterButtonPushed, true);
+            app.SetBatterButton.BackgroundColor = [0.9294 0.6941 0.1255];
+            app.SetBatterButton.FontWeight = 'bold';
+            app.SetBatterButton.Position = [657.5 332 72 22];
+            app.SetBatterButton.Text = 'Set Batter';
+
+            % Create LightCurtainOnButton
+            app.LightCurtainOnButton = uibutton(app.UIFigure, 'push');
+            app.LightCurtainOnButton.ButtonPushedFcn = createCallbackFcn(app, @LightCurtainOnButtonPushed, true);
+            app.LightCurtainOnButton.Position = [497 206 126 52];
+            app.LightCurtainOnButton.Text = 'Light Curtain On';
+
+            % Create SafetyDemoButton
+            app.SafetyDemoButton = uibutton(app.UIFigure, 'push');
+            app.SafetyDemoButton.ButtonPushedFcn = createCallbackFcn(app, @SafetyDemoButtonPushed, true);
+            app.SafetyDemoButton.BackgroundColor = [0 1 1];
+            app.SafetyDemoButton.FontSize = 16;
+            app.SafetyDemoButton.FontWeight = 'bold';
+            app.SafetyDemoButton.Position = [450 168 252 118];
+            app.SafetyDemoButton.Text = 'Safety Demo';
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = oven_interface
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            % Execute the startup function
+            runStartupFcn(app, @startupFcn)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end

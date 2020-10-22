@@ -327,7 +327,7 @@ classdef Spawn < handle
                     lambda = 0;
                 end
                 invJ = inv(J'*J + lambda *eye(6))*J';                                   % DLS Inverse
-                qdot(i,:) = (invJ*xdot)';                                                % Solve the RMRC equation (you may need to transpose the         vector)
+                qdot(i,:) = (invJ*xdot)';                                                % Solve the RMRC equation
                 for j = 1:6                                                             % Loop through joints 1 to 6
                     if qMatrix(i,j) + deltaT*qdot(i,j) < self.robot.model.qlim(j,1)                     % If next joint angle is lower than joint limit...
                         qdot(i,j) = 0; % Stop the motor
