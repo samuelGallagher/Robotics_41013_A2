@@ -305,7 +305,7 @@ classdef Spawn < handle
             T = [rpy2r(theta(1,1),theta(2,1),theta(3,1)) x(:,1);zeros(1,3) 1];          % Create transformation of first point and angle
             %q0 = zeros(1,7);                                                            % Initial guess for joint angles
             q0 = q_start;
-            %qMatrix(1,:) = self.robot.model.ikcon(T,q0);                                            % Solve joint angles to achieve first waypoint
+            %qMatrix(1,:) = self.robot.model.ikcon(T,q0);                                % Solve joint angles to achieve first waypoint
             qMatrix(1,:) = q_start;
             % 1.4) Track the trajectory with RMRC
             for i = 1:steps-1
